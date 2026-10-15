@@ -88,111 +88,38 @@
                 </div>
             </div>
 
-            <!-- Visual Map Canvas Area -->
-            <div class="relative flex-1 mt-4 rounded-2xl bg-[#EAF0F6] overflow-hidden min-h-[460px] border border-slate-200/60 flex items-center justify-center select-none">
+            <!-- Interactive Map Container Area -->
+            <div class="relative flex-1 mt-4 rounded-2xl bg-[#EAF0F6] overflow-hidden min-h-[480px] border border-slate-200/60 flex flex-col justify-between">
                 
-                <!-- Map Background Grids & Labels -->
-                <div class="absolute inset-0 opacity-40 pointer-events-none" style="background-image: radial-gradient(#94a3b8 1px, transparent 1px); background-size: 32px 32px;"></div>
-                
-                <!-- Coordinate Markings -->
-                <span class="absolute top-4 left-16 text-[10px] font-semibold text-slate-400">98°E</span>
-                <span class="absolute top-4 left-1/3 text-[10px] font-semibold text-slate-400">108°E</span>
-                <span class="absolute top-4 left-1/2 text-[10px] font-semibold text-slate-400">118°E</span>
-                <span class="absolute top-4 right-1/4 text-[10px] font-semibold text-slate-400">128°E</span>
-                <span class="absolute top-4 right-12 text-[10px] font-semibold text-slate-400">138°E</span>
+                <!-- MapTiler/MapLibre Canvas -->
+                <div id="indonesia-map" class="w-full h-full min-h-[480px] absolute inset-0 z-0"></div>
 
-                <span class="absolute top-1/4 left-3 text-[10px] font-semibold text-slate-400">0°00' (Khatulistiwa)</span>
-                <span class="absolute top-1/2 left-3 text-[10px] font-semibold text-slate-400">5°00'S</span>
-                <span class="absolute bottom-1/4 left-3 text-[10px] font-semibold text-slate-400">10°00'S</span>
+                <!-- Coordinate Grid Decorative Hint -->
+                <div class="absolute inset-0 pointer-events-none z-[1] opacity-25" style="background-image: radial-gradient(#94a3b8 1px, transparent 1px); background-size: 36px 36px;"></div>
 
-                <!-- Stylized Archipelago SVG Silhouette -->
-                <svg class="w-full h-full max-h-[420px] p-6 text-emerald-200/80 fill-current opacity-70" viewBox="0 0 1000 450">
-                    <!-- Sumatera -->
-                    <path d="M70,120 L150,220 L190,280 L160,300 L90,190 Z" />
-                    <!-- Jawa -->
-                    <path d="M220,330 L380,335 L420,340 L410,360 L230,350 Z" />
-                    <!-- Kalimantan -->
-                    <path d="M250,110 L370,120 L380,240 L280,250 L240,180 Z" />
-                    <!-- Sulawesi -->
-                    <path d="M440,140 L480,145 L470,230 L520,240 L480,290 L440,240 Z" />
-                    <!-- Maluku -->
-                    <path d="M570,170 L600,180 L590,250 L560,240 Z" />
-                    <!-- Nusa Tenggara -->
-                    <path d="M430,345 L540,350 L530,370 L430,365 Z" />
-                    <!-- Papua -->
-                    <path d="M630,190 L750,200 L840,250 L830,340 L700,340 L640,250 Z" />
-                </svg>
-
-                <!-- GEOSPATIAL CLUSTERS & MARKERS -->
-
-                <!-- 1. Kalimantan Barat / Sambas (Active Focus) -->
-                <div class="absolute top-[28%] left-[28%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-                    <!-- Tooltip Card -->
-                    <div class="bg-white rounded-xl shadow-lg border border-slate-200/80 p-3 mb-2 min-w-[210px] animate-bounce-short">
-                        <div class="flex items-center justify-between gap-1 mb-1">
-                            <span class="px-1.5 py-0.5 text-[9px] font-bold text-[#FF5C2A] bg-[#FFF2ED] rounded">Fokus Terpilih</span>
-                            <span class="flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                GPS Match
-                            </span>
-                        </div>
-                        <div class="text-xs font-bold text-slate-900 leading-tight">SDN 02 Sambas Terluar</div>
-                        <div class="text-[10px] text-slate-500 font-medium">NPSN: 10802199 &bull; Kalbar</div>
-                        <div class="mt-1.5 pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-[10px] font-semibold text-slate-600">Skor Kerusakan:</span>
-                            <span class="text-[10px] font-extrabold text-[#FF5C2A]">4.8 / 5.0 (Rusak Berat)</span>
-                        </div>
+                <!-- MAP CONTROLS & BOTTOM ATTRIBUTIONS (Floating Overlay on top of Map) -->
+                <div class="relative z-10 p-3 flex flex-wrap items-center justify-between gap-3 pointer-events-none mt-auto">
+                    <!-- Legend -->
+                    <div class="flex flex-wrap items-center gap-3 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200/80 text-xs shadow-sm pointer-events-auto">
+                        <span class="font-bold text-slate-700 text-[11px]">Indeks Kerusakan 3T:</span>
+                        <span class="flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> Kritis (&gt;4.0)
+                        </span>
+                        <span class="flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Sedang (2.5 &ndash; 4.0)
+                        </span>
+                        <span class="flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Tervalidasi / Prima
+                        </span>
                     </div>
 
-                    <!-- Marker Pin -->
-                    <div class="relative flex items-center justify-center">
-                        <span class="absolute w-12 h-12 rounded-full bg-emerald-500/20 animate-ping"></span>
-                        <div class="w-9 h-9 rounded-full bg-[#10B981] text-white flex items-center justify-center font-extrabold text-xs shadow-md border-2 border-white">
-                            84
-                        </div>
+                    <!-- Zoom Controls -->
+                    <div class="flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-xl border border-slate-200/80 shadow-sm pointer-events-auto">
+                        <button type="button" id="btn-map-zoom-in" aria-label="Zoom in" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 font-bold text-slate-700 text-sm transition-colors">+</button>
+                        <button type="button" id="btn-map-zoom-out" aria-label="Zoom out" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 font-bold text-slate-700 text-sm transition-colors">&minus;</button>
+                        <button type="button" id="btn-map-reset" class="px-2 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-[10px] font-semibold text-slate-600 transition-colors">Reset Peta</button>
+                        <span class="text-[9px] text-slate-400 border-l border-slate-200 pl-2 pr-1">OpenStreetMap &bull; MapTiler</span>
                     </div>
-                    <span class="mt-1 text-[10px] font-bold text-[#FF5C2A] bg-white/80 px-1.5 py-0.5 rounded shadow-xs">KALBAR / SAMBAS (KRITIS)</span>
-                </div>
-
-                <!-- 2. NTT / Alor Cluster -->
-                <div class="absolute bottom-[24%] left-[48%] flex flex-col items-center">
-                    <div class="w-8 h-8 rounded-full bg-[#FF5C2A] text-white flex items-center justify-center font-extrabold text-xs shadow-md border-2 border-white">
-                        68
-                    </div>
-                    <span class="mt-0.5 text-[9px] font-bold text-[#FF5C2A] bg-white/90 px-1 rounded shadow-xs">NTT / ALOR (KRITIS)</span>
-                </div>
-
-                <!-- 3. Papua Kluster Darurat Tier-1 -->
-                <div class="absolute bottom-[30%] right-[18%] flex flex-col items-center">
-                    <div class="px-3 py-1 bg-red-500/10 border border-red-500/40 rounded-lg p-2 flex flex-col items-center backdrop-blur-xs">
-                        <span class="text-[9px] font-extrabold text-red-600 tracking-wider">PAPUA (DARURAT TIER-1)</span>
-                        <div class="w-9 h-9 rounded-full bg-[#EA4A18] text-white flex items-center justify-center font-extrabold text-xs shadow-md border-2 border-white mt-1">
-                            215
-                        </div>
-                        <span class="text-[9px] font-bold text-red-600">Darurat</span>
-                    </div>
-                </div>
-
-                <!-- MAP CONTROLS & BOTTOM ATTRIBUTIONS -->
-                <div class="absolute bottom-3 left-3 flex flex-wrap items-center gap-3 bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200/80 text-xs">
-                    <span class="font-bold text-slate-700 text-[11px]">Indeks Kerusakan 3T:</span>
-                    <span class="flex items-center gap-1 text-[11px] font-medium text-slate-600">
-                        <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> Kritis (&gt;4.0)
-                    </span>
-                    <span class="flex items-center gap-1 text-[11px] font-medium text-slate-600">
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Sedang (2.5 &ndash; 4.0)
-                    </span>
-                    <span class="flex items-center gap-1 text-[11px] font-medium text-slate-600">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Tervalidasi / Prima
-                    </span>
-                </div>
-
-                <!-- Zoom Controls -->
-                <div class="absolute bottom-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-md p-1 rounded-xl border border-slate-200/80">
-                    <button class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 font-bold text-slate-700 text-sm">+</button>
-                    <button class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 font-bold text-slate-700 text-sm">&minus;</button>
-                    <button class="px-2 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-[10px] font-semibold text-slate-600">Reset Peta</button>
-                    <span class="text-[9px] text-slate-400 border-l border-slate-200 pl-2 pr-1">Leaflet / OpenStreetMap</span>
                 </div>
             </div>
 
