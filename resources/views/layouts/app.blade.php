@@ -7,6 +7,9 @@
 
     <title>{{ $title ?? 'EduInfra Tracker - Audit Fasilitas & Matching CSR 3T' }}</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+
     <!-- Google Font: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,9 +28,7 @@
         @yield('content')
     </main>
 
-    <!-- FOOTER / AUDIT COMPLIANCE BANNER -->
-    <footer class="border-t border-slate-200/60 py-4 text-center text-xs text-slate-500">
-        <p>EduInfra Tracker &copy; {{ date('Y') }} Kemendikbudristek &bull; Sistem Audit Spasial Wilayah 3T Terintegrasi (SDG 4 Non-E-Learning)</p>
-    </footer>
+    <!-- INSTITUTIONAL FOOTER -->
+    <x-layouts.footer />
 </body>
 </html>

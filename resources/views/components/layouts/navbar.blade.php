@@ -14,11 +14,7 @@
             <!-- Brand & Project Badge -->
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3.5 hover:opacity-95 transition-opacity">
                 <!-- Logo Mark -->
-                <div class="w-11 h-11 bg-[#14171F] rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                    <svg class="w-6 h-6 text-[#FF5C2A]" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 4.5c1.38 0 2.5 1.12 2.5 2.5 0 1.88-2.5 4.5-2.5 4.5s-2.5-2.62-2.5-4.5c0-1.38 1.12-2.5 2.5-2.5z"/>
-                    </svg>
-                </div>
+                <x-ui.logo-icon size="w-11 h-11" />
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="text-lg font-extrabold text-[#14171F] tracking-tight">EduInfra Tracker</h1>
@@ -138,3 +134,4 @@
 
     </div>
 </header>
+
