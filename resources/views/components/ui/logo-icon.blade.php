@@ -31,3 +31,4 @@
         <path d="M19 41.5H37" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.9" />
     </svg>
 </div>
+
