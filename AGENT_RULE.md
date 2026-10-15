@@ -116,9 +116,20 @@ Setiap pengembangan fitur harus merujuk pada 15 entitas CRUD di PRD:
 ---
 
 ## 6. RESPONSE & CODING PROTOCOL
-1. **Saat membuat fitur baru:**
+1. **Mandat Utama Agen AI:**
+   - **Sebelum mengeksekusi kode atau perintah apa pun**, agen wajib membaca dan memahami seluruh isi `AGENT_RULE.md` ini terlebih dahulu sebagai *single source of truth*.
+2. **Saat membuat fitur baru:**
    - Awali dengan Backend: `FormRequest` -> `Action/Service` -> `Controller` (Thin).
    - Tampilan: Buat atau gunakan komponen reusable di `resources/views/components/` sebelum menyusun view `.blade.php`.
-2. **Kualitas Kode:**
+3. **Kualitas Kode:**
    - Gunakan type hinting PHP (`string`, `int`, `array`, return types).
    - Pastikan layout seragam dan tidak mengubah warna/radius di luar Design Tokens.
+
+---
+
+## 7. STRICT GIT & COMMIT PROTOCOL
+- ⛔ **DILARANG KERAS** menjalankan perintah `git commit` secara otomatis di latar belakang!
+- Agen hanya diperbolehkan menyusun dan menyodorkan **rekomendasi pesan commit** (commit message) kepada pengguna.
+- Pengguna yang memiliki hak penuh untuk mengeksekusi `git add` dan `git commit` di terminal sendiri.
+
+
