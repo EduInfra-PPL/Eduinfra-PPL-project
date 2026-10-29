@@ -104,6 +104,10 @@ class DamageReportController extends Controller
 }
 ```
 
+### C. Pengecualian Tercatat (Re-mapping)
+- Modul **Domain 1** (`SchoolController`, `RegionController`, `FacilityCategoryController`) masih memakai `$request->validate()` dan `DB::transaction()` langsung di controller, serta logic query di dalamnya. Ini **belum** sesuai aturan di atas.
+- Diterima sebagai pengecualian sementara saat integrasi awal. Refactor ke `FormRequest` + `Action` + thin controller dijadwalkan sebagai langkah terpisah.
+
 ---
 
 ## 3. FRONTEND ARCHITECTURE (BLADE COMPONENT-DRIVEN)
