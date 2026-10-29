@@ -38,7 +38,7 @@
                 </a>
                 
                 <!-- Audit Fasilitas -->
-                <a href="#audit" 
+                <a href="{{ route('reports.index') }}" 
                    class="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-full transition-all {{ $active === 'audit' ? 'bg-[#14171F] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}">
                     <svg class="w-3.5 h-3.5 {{ $active === 'audit' ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
