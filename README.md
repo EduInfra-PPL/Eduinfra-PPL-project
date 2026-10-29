@@ -1,6 +1,6 @@
 # 🏫 EduInfra Tracker (EduBuild)
 > **Platform Crowdsourcing Audit Fasilitas Sekolah & Matching CSR Wilayah 3T Berbasis GIS Berakurasi Tinggi**  
-> *Mendukung Tujuan Pembangunan Berkelanjutan (SDG 4: Quality Education - Non-E-Learning)*
+> *Mendukung Tujuan Pembangunan Berkelanjutan (SDG 4: Quality Education)*
 
 ---
 
@@ -37,7 +37,7 @@ Sistem ini menggabungkan mekanisme pelaporan publik berakurasi tinggi dengan ver
 
 ---
 
-## 👨‍💻 Tim Pengembang (Kelompok C - PPL)
+## 👨‍💻 Tim Pengembang (Kelompok A-C - PPL)
 
 | No | NIM / Nama | Peran | Modul |
 |:--:|:---|:---|:---|
