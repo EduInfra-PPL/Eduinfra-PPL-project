@@ -39,15 +39,13 @@ Sistem ini menggabungkan mekanisme pelaporan publik berakurasi tinggi dengan ver
 
 ## 👨‍💻 Tim Pengembang (Kelompok C - PPL)
 
-| No | Nama | Peran / Ranah Pengembangan | Kontak / GitHub |
-|:--:|:---|:---|:--:|
-| 1 | **Lanang Wisana** | Frontend & UI/UX Architect (Dashboard, MapTiler GIS, Blade Design System) | [@lanangwisana](https://github.com/lanangwisana) |
-| 2 | **Abdullah Amaaniy** | Backend & Database Architect (Domain 1: Master Wilayah, PostGIS, REST API) | [@abdullahamaaniy80](https://github.com/abdullahamaaniy80) |
-| 3 | **Dimas Rizky Pratama** | Security & Auth Developer (Domain 5: RBAC & User Management) | [@dimasrizkypra](https://github.com/dimasrizkypra) |
-| 4 | **[Nama Rekan Tim 4]** | Fullstack Developer (Domain 2 & 3: Pelaporan, Audit & Manajemen Renovasi RAB) | — |
-| 5 | **[Nama Rekan Tim 5]** | Fullstack Developer (Domain 4: Matching CSR & Pencairan Anggaran) | — |
-
-> *Catatan: Silakan lengkapi nama atau NIM rekan anggota tim lainnya sesuai daftar resmi kelompok.*
+| No | NIM / Nama | Peran | Modul |
+|:--:|:---|:---|:---|
+| 1 | 102022580031 / **Abdullah Amaaniy** | Full-stack Developer | A. Master Wilayah dan Kelembagaan Pendidikan |
+| 2 | 102022580027 / **Dimas Rizky Prayoga** | Scrum Master dan Full-stack Developer | B. Pelaporan Kerusakan dan Verifikasi Lapangan |
+| 3 | 102022580039 / **Fakhira Nur Aini** | Full-stack Developer | C. Manajemen Renovasi, RAB dan Rekanan Vendor |
+| 4 | 102022580018 / **I Made Lanang Ary Wisana** | Product Owner dan Full-stack Developer | D. Pendanaan Bantuan, CSR dan Pencairan Anggaran |
+| 5 | 102022580030 / **Nazwa Abdullah Nasution** | Full-stack Developer | E. Tata Kelola Akun, Keamanan dan Eskalasi Pengaduan |
 
 ---
 
@@ -96,8 +94,8 @@ DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_DATABASE=eduinfra
-DB_USERNAME=eduinfra
-DB_PASSWORD=eduinfra_dev
+DB_USERNAME=....
+DB_PASSWORD=....
 
 # MapTiler API Key (https://cloud.maptiler.com)
 VITE_MAPTILER_API_KEY=YOUR_MAPTILER_API_KEY_HERE
