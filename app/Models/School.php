@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Tabel schools (PBI-01). coordinates = titik master (PostGIS geography Point)
@@ -29,5 +30,13 @@ class School extends Model
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class, 'region_id');
+    }
+
+    /**
+     * Laporan kerusakan fisik pada sekolah ini (Domain 2 / PBI-04).
+     */
+    public function damageReports(): HasMany
+    {
+        return $this->hasMany(DamageReport::class, 'school_id');
     }
 }
