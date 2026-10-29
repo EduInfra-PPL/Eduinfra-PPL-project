@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: eduinfra-db
+    environment:
+      POSTGRES_DB: eduinfra
+      POSTGRES_USER: eduinfra
+      POSTGRES_PASSWORD: eduinfra_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      # *.sql di folder ini dijalankan otomatis berurutan (01_schema, 02_seed)
+      # saat volume data masih kosong. Subfolder optional/ tidak ikut dijalankan.
+      - ./database/sql:/docker-entrypoint-initdb.d:ro
+      - eduinfra_pgdata:/var/lib/postgresql/data
+
+volumes:
+  eduinfra_pgdata:
