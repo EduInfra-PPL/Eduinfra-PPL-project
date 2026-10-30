@@ -139,3 +139,22 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Hide MapTiler / MapLibre watermark logo and default attribution */
+.maplibregl-ctrl-logo,
+.maptiler-ctrl-logo,
+a.maplibregl-ctrl-logo,
+.maplibregl-ctrl-attrib,
+.maptiler-ctrl-attrib,
+.maplibregl-ctrl-bottom-left,
+.maplibregl-ctrl-bottom-right,
+#indonesia-map .maplibregl-ctrl-bottom-left,
+#indonesia-map .maplibregl-ctrl-bottom-right,
+#indonesia-map .maplibregl-ctrl,
+#indonesia-map a[href*="maptiler"],
+#indonesia-map a[title*="MapTiler"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}

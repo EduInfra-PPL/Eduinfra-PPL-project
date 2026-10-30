@@ -1,6 +1,102 @@
 import * as maptilersdk from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 
+// Basemap style definitions (Vector MapTiler styles & External Raster Services)
+const BASEMAP_STYLES = {
+    'osm': maptilersdk.MapStyle.OPENSTREETMAP,
+    'satellite': maptilersdk.MapStyle.SATELLITE,
+    'hybrid': maptilersdk.MapStyle.HYBRID,
+    'street': maptilersdk.MapStyle.STREETS,
+    'topo': maptilersdk.MapStyle.TOPO,
+    'outdoor': maptilersdk.MapStyle.OUTDOOR,
+    'terang': maptilersdk.MapStyle.BRIGHT,
+    'dataviz': maptilersdk.MapStyle.DATAVIZ,
+    'esri-imagery': {
+        version: 8,
+        sources: {
+            'esri-imagery-source': {
+                type: 'raster',
+                tiles: [
+                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                ],
+                tileSize: 256
+            }
+        },
+        layers: [
+            {
+                id: 'esri-imagery-layer',
+                type: 'raster',
+                source: 'esri-imagery-source',
+                minzoom: 0,
+                maxzoom: 19
+            }
+        ]
+    },
+    'esri-topo': {
+        version: 8,
+        sources: {
+            'esri-topo-source': {
+                type: 'raster',
+                tiles: [
+                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
+                ],
+                tileSize: 256
+            }
+        },
+        layers: [
+            {
+                id: 'esri-topo-layer',
+                type: 'raster',
+                source: 'esri-topo-source',
+                minzoom: 0,
+                maxzoom: 19
+            }
+        ]
+    },
+    'esri-gray': {
+        version: 8,
+        sources: {
+            'esri-gray-source': {
+                type: 'raster',
+                tiles: [
+                    'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+                ],
+                tileSize: 256
+            }
+        },
+        layers: [
+            {
+                id: 'esri-gray-layer',
+                type: 'raster',
+                source: 'esri-gray-source',
+                minzoom: 0,
+                maxzoom: 19
+            }
+        ]
+    },
+    'big-rupabumi': {
+        version: 8,
+        sources: {
+            'big-rbi-source': {
+                type: 'raster',
+                tiles: [
+                    'https://geoservices.big.go.id/rbi/rest/services/KARTOGRAFI/RBI_50K_KARTOGRAFI/MapServer/tile/{z}/{y}/{x}'
+                ],
+                tileSize: 256
+            }
+        },
+        layers: [
+            {
+                id: 'big-rbi-layer',
+                type: 'raster',
+                source: 'big-rbi-source',
+                minzoom: 0,
+                maxzoom: 19
+            }
+        ]
+    }
+};
+
 export function initIndonesiaMap() {
     const mapContainer = document.getElementById('indonesia-map');
     if (!mapContainer) return;
@@ -15,10 +111,10 @@ export function initIndonesiaMap() {
     const indonesiaCenter = [118.0149, -2.5489];
     const initialZoom = 4.6;
 
-    // Initialize MapLibre/MapTiler Map
+    // Initialize MapLibre/MapTiler Map with default OpenStreetMap
     const map = new maptilersdk.Map({
         container: mapContainer,
-        style: maptilersdk.MapStyle.PASTEL || maptilersdk.MapStyle.STREETS,
+        style: maptilersdk.MapStyle.OPENSTREETMAP,
         center: indonesiaCenter,
         zoom: initialZoom,
         minZoom: 3.8,
@@ -30,11 +126,40 @@ export function initIndonesiaMap() {
         ],
         navigationControl: false,
         geolocateControl: false,
+        attributionControl: false,
+        maptilerLogo: false,
+        forceNoAttributionControl: true,
     });
 
+    // Clean up any remaining MapTiler branding/watermark elements
+    const cleanWatermark = () => {
+        const unwanted = mapContainer.querySelectorAll(
+            '.maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right, .maplibregl-ctrl, a[href*="maptiler"], a[title*="MapTiler"]'
+        );
+        unwanted.forEach(el => el.remove());
+    };
+
     map.on('load', () => {
+        // Trigger resize to ensure canvas fits 100% full container
+        setTimeout(() => map.resize(), 100);
+        cleanWatermark();
         // Render 3 visual static mock pins matching Figma screenshot
         addVisualMockPins(map);
+    });
+
+    map.on('render', cleanWatermark);
+    map.on('style.load', cleanWatermark);
+    map.on('styledata', cleanWatermark);
+
+    // Dynamic Basemap switching listener from custom events
+    window.addEventListener('change-basemap', (e) => {
+        const { id } = e.detail;
+        const targetStyle = BASEMAP_STYLES[id] || maptilersdk.MapStyle.OPENSTREETMAP;
+        try {
+            map.setStyle(targetStyle);
+        } catch (err) {
+            console.warn(`Could not change basemap to ${id}:`, err);
+        }
     });
 
     // Setup custom zoom & reset controls
