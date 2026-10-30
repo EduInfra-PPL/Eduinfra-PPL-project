@@ -18,9 +18,6 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="text-lg font-extrabold text-[#14171F] tracking-tight">EduInfra Tracker</h1>
-                        <span class="px-2.5 py-0.5 text-[11px] font-bold text-[#FF5C2A] bg-[#FFF2ED] rounded-full border border-[#FFD9CC]">
-                            GIS 3T v2.4
-                        </span>
                     </div>
                     <p class="text-[11px] font-medium text-slate-500">Audit Fasilitas & Matching CSR Wilayah 3T</p>
                 </div>
@@ -88,9 +85,8 @@
                 <input 
                     type="text" 
                     placeholder="SDN 02 Sambas..." 
-                    class="w-full pl-9 pr-12 py-2 text-xs font-medium text-slate-800 bg-[#F8FAFC] border border-slate-200/70 rounded-full focus:bg-white focus:border-[#FF5C2A] focus:outline-none transition-all placeholder-slate-400 shadow-xs"
+                    class="w-full pl-9 pr-4 py-2 text-xs font-medium text-slate-800 bg-[#F8FAFC] border border-slate-200/70 rounded-full focus:bg-white focus:border-[#FF5C2A] focus:outline-none transition-all placeholder-slate-400 shadow-xs"
                 />
-                <kbd class="absolute right-3 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 bg-white border border-slate-200 rounded-md">⌘K</kbd>
             </div>
 
             <!-- Action & Profile Capsule Group -->
