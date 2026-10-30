@@ -15,4 +15,5 @@ Route::get('/dashboard', function () {
 Route::prefix('reports')->name('reports.')->group(function () {
     Route::get('/', [DamageReportController::class, 'index'])->name('index');
     Route::get('/create', [DamageReportController::class, 'create'])->name('create');
+    Route::post('/', [DamageReportController::class, 'store'])->name('store');
 });
