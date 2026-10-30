@@ -117,8 +117,4 @@ Buka 2 terminal terpisah:
 # Terminal 1: Laravel Backend
 php artisan serve
 
-# Terminal 2: Vite Bundler
-npm run dev
 ```
-
-Buka browser dan akses: **[http://localhost:8000](http://localhost:8000)** atau **[http://localhost:8000/dashboard](http://localhost:8000/dashboard)**.
