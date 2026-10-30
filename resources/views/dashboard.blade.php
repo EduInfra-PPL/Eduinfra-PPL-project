@@ -52,77 +52,9 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <!-- LEFT PANEL: SPATIAL GIS CLUSTER MAP (col-span-8) -->
-        <div class="lg:col-span-8 bg-white rounded-2xl lg:rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col min-h-[640px]">
-            
-            <!-- Map Header Controls -->
-            <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
-                <div class="flex items-center gap-2.5">
-                    <span class="w-3 h-3 rounded-full bg-[#FF5C2A]"></span>
-                    <h2 class="text-base font-bold text-[#14171F]">Peta Spasial Kluster Kerusakan 3T</h2>
-                    <span class="px-2 py-0.5 text-[10px] font-semibold text-slate-500 bg-slate-100 rounded-md">
-                        EPSG:4326 WGS84
-                    </span>
-                </div>
-
-                <!-- Layer Pills Controls -->
-                <div class="flex flex-wrap items-center gap-1.5 text-xs">
-                    <button class="flex items-center gap-1.5 px-3 py-1.5 bg-[#14171F] text-white font-medium rounded-full shadow-xs">
-                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-                        OpenStreetMap <span class="text-[10px] text-emerald-400 font-bold">Aktif</span>
-                    </button>
-                    
-                    <button class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium rounded-full border border-slate-200/80 transition-colors">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        Layer Batas GeoJSON 3T
-                    </button>
-
-                    <button class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium rounded-full border border-slate-200/80 transition-colors">
-                        <svg class="w-3.5 h-3.5 text-[#FF5C2A]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.63 1.066-.94 1.717a23.3 23.3 0 00-.943 2.378 19.3 19.3 0 00-.77 2.784c-.05.28-.088.56-.118.84a9.7 9.7 0 00-3.352-1.742 1 1 0 00-1.127 1.488c.45.674.882 1.393 1.258 2.148.647 1.295 1.096 2.658 1.288 3.993a7.48 7.48 0 003.54-1.285 1 1 0 00.32-1.297 8.01 8.01 0 01-.67-2.736c.264-.325.56-.632.883-.912.87-.753 1.956-1.34 3.018-1.777a1 1 0 00.6-1.19z" clip-rule="evenodd"/></svg>
-                        Heatmap Kerusakan
-                    </button>
-
-                    <button class="flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF2ED] text-[#FF5C2A] font-semibold rounded-full border border-[#FFD9CC]">
-                        <svg class="w-3.5 h-3.5 text-[#FF5C2A]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
-                        Radius Geofence 250m Indicator
-                    </button>
-                </div>
-            </div>
-
-            <!-- Interactive Map Container Area -->
-            <div class="relative flex-1 mt-4 rounded-2xl bg-[#EAF0F6] overflow-hidden min-h-[480px] border border-slate-200/60 flex flex-col justify-between">
-                
-                <!-- MapTiler/MapLibre Canvas -->
-                <div id="indonesia-map" class="w-full h-full min-h-[480px] absolute inset-0 z-0"></div>
-
-                <!-- Coordinate Grid Decorative Hint -->
-                <div class="absolute inset-0 pointer-events-none z-[1] opacity-25" style="background-image: radial-gradient(#94a3b8 1px, transparent 1px); background-size: 36px 36px;"></div>
-
-                <!-- MAP CONTROLS & BOTTOM ATTRIBUTIONS (Floating Overlay on top of Map) -->
-                <div class="relative z-10 p-3 flex flex-wrap items-center justify-between gap-3 pointer-events-none mt-auto">
-                    <!-- Legend -->
-                    <div class="flex flex-wrap items-center gap-3 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200/80 text-xs shadow-sm pointer-events-auto">
-                        <span class="font-bold text-slate-700 text-[11px]">Indeks Kerusakan 3T:</span>
-                        <span class="flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> Kritis (&gt;4.0)
-                        </span>
-                        <span class="flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Sedang (2.5 &ndash; 4.0)
-                        </span>
-                        <span class="flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Tervalidasi / Prima
-                        </span>
-                    </div>
-
-                    <!-- Zoom Controls -->
-                    <div class="flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-xl border border-slate-200/80 shadow-sm pointer-events-auto">
-                        <button type="button" id="btn-map-zoom-in" aria-label="Zoom in" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 font-bold text-slate-700 text-sm transition-colors">+</button>
-                        <button type="button" id="btn-map-zoom-out" aria-label="Zoom out" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 font-bold text-slate-700 text-sm transition-colors">&minus;</button>
-                        <button type="button" id="btn-map-reset" class="px-2 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-[10px] font-semibold text-slate-600 transition-colors">Reset Peta</button>
-                        <span class="text-[9px] text-slate-400 border-l border-slate-200 pl-2 pr-1">OpenStreetMap &bull; MapTiler</span>
-                    </div>
-                </div>
-            </div>
-
+        <!-- SPATIAL GIS MAP (MAPTILER & MULTI-BASEMAP VIEWER) -->
+        <div class="lg:col-span-8 flex flex-col">
+            <x-map.spatial-card />
         </div>
 
         <!-- RIGHT PANEL: PRIORITY SCHOOLS LIST (col-span-4) -->
