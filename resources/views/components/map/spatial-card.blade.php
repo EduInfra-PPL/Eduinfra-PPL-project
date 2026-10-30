@@ -60,37 +60,27 @@
 }" class="bg-white rounded-3xl p-6 shadow-xs border border-slate-200/80 flex flex-col relative">
 
     <!-- Header Section (Peta Spasial Kluster Kerusakan 3T) -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-100">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#FF5C2A] animate-pulse"></span>
-                <h3 class="text-sm lg:text-base font-bold text-slate-900 tracking-tight">Peta Spasial Kluster Kerusakan 3T</h3>
-                <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-500 rounded-md">EPSG:4326 WGS84</span>
-            </div>
-            <p class="text-xs text-slate-500 mt-0.5">Pemetaan geospasial real-time infrastruktur sekolah 3T terluar di seluruh Indonesia</p>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5 shrink-0">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF5C2A] animate-pulse"></span>
+            <h3 class="text-sm lg:text-base font-bold text-slate-900 tracking-tight whitespace-nowrap">Peta Spasial Kluster Kerusakan 3T</h3>
         </div>
 
         <!-- Quick Filter / Layer Badges -->
-        <div class="flex flex-wrap items-center gap-1.5 text-xs">
-            <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white font-medium rounded-full shadow-xs">
-                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-                <span x-text="activeBasemapName">Open Street Map</span>
-                <span class="px-1.5 py-0.2 text-[9px] font-bold bg-emerald-500/30 text-emerald-300 rounded">Aktif</span>
-            </button>
-
-            <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium rounded-full border border-slate-200/80 transition-colors">
+        <div class="flex items-center gap-1.5 flex-wrap justify-end text-xs">
+            <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium rounded-full border border-slate-200/80 transition-colors shrink-0 cursor-pointer">
                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                Layer Batas GeoJSON 3T
+                Batas Wilayah 3T
             </button>
 
-            <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium rounded-full border border-slate-200/80 transition-colors">
+            <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium rounded-full border border-slate-200/80 transition-colors shrink-0 cursor-pointer">
                 <svg class="w-3.5 h-3.5 text-[#FF5C2A]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.63 1.066-.94 1.717a23.3 23.3 0 00-.943 2.378 19.3 19.3 0 00-.77 2.784c-.05.28-.088.56-.118.84a9.7 9.7 0 00-3.352-1.742 1 1 0 00-1.127 1.488c.45.674.882 1.393 1.258 2.148.647 1.295 1.096 2.658 1.288 3.993a7.48 7.48 0 003.54-1.285 1 1 0 00.32-1.297 8.01 8.01 0 01-.67-2.736c.264-.325.56-.632.883-.912.87-.753 1.956-1.34 3.018-1.777a1 1 0 00.6-1.19z" clip-rule="evenodd"/></svg>
                 Heatmap Kerusakan
             </button>
 
-            <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF2ED] text-[#FF5C2A] font-semibold rounded-full border border-[#FFD9CC]">
+            <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF2ED] hover:bg-[#FFE5DC] text-[#FF5C2A] font-semibold rounded-full border border-[#FFD9CC] transition-colors shrink-0 cursor-pointer">
                 <svg class="w-3.5 h-3.5 text-[#FF5C2A]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
-                Radius Geofence 250m Indicator
+                Geofence 250m
             </button>
         </div>
     </div>
