@@ -18,8 +18,8 @@ class DamageReportTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Daftar Laporan Fasilitas Sekolah');
-        $response->assertSee('SDN 02 Sambas Terluar');
-        $response->assertSee('Deviasi Geofence EXIF');
+        $response->assertSee('Total Tiket Masuk');
+        $response->assertSee('Buat Laporan Kerusakan Baru');
     }
 
     /**
@@ -34,6 +34,55 @@ class DamageReportTest extends TestCase
         $response->assertSee('Identifikasi Satuan Pendidikan');
         $response->assertSee('Titik Master GPS Sekolah');
         $response->assertSee('Protokol EXIF v4.2');
+    }
+
+    /**
+     * Uji validasi penyimpanan laporan baru (PBI-04).
+     */
+    public function test_reports_store_validates_required_fields(): void
+    {
+        $response = $this->post(route('reports.store'), []);
+
+        $response->assertSessionHasErrors([
+            'school_id',
+            'category_id',
+            'title',
+            'description',
+            'severity_level',
+        ]);
+    }
+
+    /**
+     * Uji penyimpanan laporan baru berhasil dan redirect ke index dengan notifikasi flash (PBI-04).
+     */
+    public function test_reports_store_creates_record_and_redirects(): void
+    {
+        $school = School::active()->first();
+        $category = FacilityCategory::where('is_enabled', true)->first();
+
+        $payload = [
+            'school_id' => $school->id,
+            'category_id' => $category->id,
+            'title' => 'Kerusakan RKB Akibat Angin Kencang',
+            'description' => 'Bagian atap dan kusen jendela ruang kelas 3 terlepas karena terpaan angin badai.',
+            'severity_level' => 5,
+        ];
+
+        $response = $this->post(route('reports.store'), $payload);
+
+        $response->assertRedirect(route('reports.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('damage_reports', [
+            'school_id' => $school->id,
+            'category_id' => $category->id,
+            'title' => 'Kerusakan RKB Akibat Angin Kencang',
+            'severity_level' => 5,
+            'status' => 'pending',
+        ]);
+
+        // Cleanup
+        DamageReport::where('title', 'Kerusakan RKB Akibat Angin Kencang')->delete();
     }
 
     /**

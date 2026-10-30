@@ -46,12 +46,12 @@ assertTest(
     str_contains($content1, 'Daftar Laporan Fasilitas Sekolah')
 );
 assertTest(
-    "Halaman Index memuat data mock 'SDN 02 Sambas Terluar'",
-    str_contains($content1, 'SDN 02 Sambas Terluar')
+    "Halaman Index memuat komponen tabel data laporan atau status kosong",
+    str_contains($content1, 'No. Tiket') || str_contains($content1, 'Belum Ada Laporan Kerusakan')
 );
 assertTest(
-    "Halaman Index memuat kartu 'Deviasi Geofence EXIF' (14 Tiket Flagged)",
-    str_contains($content1, 'Deviasi Geofence EXIF') && str_contains($content1, 'Tiket Flagged')
+    "Halaman Index memuat kartu KPI ringkasan tiket ('Total Tiket Masuk')",
+    str_contains($content1, 'Total Tiket Masuk')
 );
 assertTest(
     "Halaman Index memuat tombol CTA '+ Buat Laporan Kerusakan Baru'",
