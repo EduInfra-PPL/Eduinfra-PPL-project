@@ -100,32 +100,59 @@
                     <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#FF5C2A] rounded-full border-2 border-white"></span>
                 </button>
 
-                <!-- User Identity Capsule -->
-                <div class="flex items-center gap-2.5 pl-1.5 pr-3 py-1 bg-[#F8FAFC] border border-slate-200/70 rounded-full cursor-pointer hover:bg-slate-100 transition-colors shadow-xs">
-                    <!-- Avatar with Online Status Indicator -->
-                    <div class="relative">
-                        <div class="w-7 h-7 rounded-full bg-[#14171F] text-white flex items-center justify-center text-xs font-bold">
-                            {{ $userInitials }}
+                <!-- User Identity Capsule: klik untuk membuka menu (Keluar / Masuk) -->
+                <x-ui.dropdown align="right" width="w-56">
+                    <x-slot:trigger>
+                        <div class="flex items-center gap-2.5 pl-1.5 pr-3 py-1 bg-[#F8FAFC] border border-slate-200/70 rounded-full cursor-pointer hover:bg-slate-100 transition-colors shadow-xs">
+                            <!-- Avatar with Online Status Indicator -->
+                            <div class="relative">
+                                <div class="w-7 h-7 rounded-full bg-[#14171F] text-white flex items-center justify-center text-xs font-bold">
+                                    {{ $userInitials }}
+                                </div>
+                                <span class="absolute bottom-0 right-0 w-2 h-2 bg-[#10B981] rounded-full border border-white"></span>
+                            </div>
+
+                            <!-- Name & Role -->
+                            <div class="text-left">
+                                <div class="text-xs font-bold text-slate-900 leading-tight">{{ $userName }}</div>
+                                <div class="text-[10px] text-slate-500 font-medium leading-none">{{ $userRole }}</div>
+                            </div>
+
+                            <!-- Status Badge -->
+                            <span class="px-2 py-0.5 text-[10px] font-semibold text-[#059669] bg-[#DCFCE7] rounded-full">
+                                Aktif
+                            </span>
+
+                            <!-- Dropdown Icon -->
+                            <svg class="w-3.5 h-3.5 text-slate-400 ml-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
                         </div>
-                        <span class="absolute bottom-0 right-0 w-2 h-2 bg-[#10B981] rounded-full border border-white"></span>
-                    </div>
+                    </x-slot:trigger>
 
-                    <!-- Name & Role -->
-                    <div class="text-left">
-                        <div class="text-xs font-bold text-slate-900 leading-tight">{{ $userName }}</div>
-                        <div class="text-[10px] text-slate-500 font-medium leading-none">{{ $userRole }}</div>
-                    </div>
+                    <x-slot:content>
+                        @auth
+                            <div class="px-3 py-2 border-b border-slate-100 mb-1">
+                                <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Masuk sebagai</div>
+                                <div class="text-xs font-bold text-slate-900 truncate">{{ auth()->user()->name }}</div>
+                                <div class="text-[11px] text-slate-500 truncate">{{ auth()->user()->email }}</div>
+                            </div>
 
-                    <!-- Status Badge -->
-                    <span class="px-2 py-0.5 text-[10px] font-semibold text-[#059669] bg-[#DCFCE7] rounded-full">
-                        Aktif
-                    </span>
-
-                    <!-- Dropdown Icon -->
-                    <svg class="w-3.5 h-3.5 text-slate-400 ml-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </div>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-red-600 font-semibold hover:bg-red-50 transition-colors">
+                                    <x-ui.icon name="logout" class="w-4 h-4" />
+                                    Keluar
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('login') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                                <x-ui.icon name="user" class="w-4 h-4" />
+                                Masuk ke akun
+                            </a>
+                        @endauth
+                    </x-slot:content>
+                </x-ui.dropdown>
 
             </div>
         </div>
