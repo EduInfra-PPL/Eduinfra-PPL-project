@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 /* @end-chisel-registration */
+use App\Actions\Auth\AuthenticateUserAction;
 use App\Actions\Fortify\ResetUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -42,6 +43,10 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
+        // PBI-13 (Login): autentikasi dengan NIP/NIK atau email kedinasan.
+        Fortify::authenticateUsing(
+            fn (Request $request) => app(AuthenticateUserAction::class)->execute($request),
+        );
         /* @chisel-registration */
         Fortify::createUsersUsing(CreateNewUser::class);
         /* @end-chisel-registration */
