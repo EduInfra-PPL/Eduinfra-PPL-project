@@ -17,3 +17,10 @@ Route::prefix('reports')->name('reports.')->group(function () {
     Route::get('/create', [DamageReportController::class, 'create'])->name('create');
     Route::post('/', [DamageReportController::class, 'store'])->name('store');
 });
+
+// Domain 4: Pendanaan Bantuan, CSR & Pencairan Anggaran
+Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
+    Route::get('/', function () {
+        return view('pendanaan.index');
+    })->name('index');
+});
