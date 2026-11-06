@@ -140,6 +140,10 @@
     }
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
 /* Hide MapTiler / MapLibre watermark logo and default attribution */
 .maplibregl-ctrl-logo,
 .maptiler-ctrl-logo,
