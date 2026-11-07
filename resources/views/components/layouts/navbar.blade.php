@@ -138,6 +138,17 @@
                                 <div class="text-[11px] text-slate-500 truncate">{{ auth()->user()->email }}</div>
                             </div>
 
+                            @if (auth()->user()->role_enum === 'admin_dinas')
+                                <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                                    <x-ui.icon name="user" class="w-4 h-4" />
+                                    Daftar Pengguna
+                                </a>
+                                <a href="{{ route('admin.registrations.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                                    <x-ui.icon name="identification" class="w-4 h-4" />
+                                    Persetujuan Registrasi
+                                </a>
+                            @endif
+
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-red-600 font-semibold hover:bg-red-50 transition-colors">
@@ -159,4 +170,3 @@
 
     </div>
 </header>
-
