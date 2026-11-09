@@ -33,6 +33,28 @@ class School extends Model
     }
 
     /**
+     * Dapatkan titik koordinat latitude dan longitude master WGS84 dari kolom geography PostGIS.
+     *
+     * @return array{latitude: float, longitude: float}|null
+     */
+    public function getCoordinatesLatLng(): ?array
+    {
+        $result = \Illuminate\Support\Facades\DB::selectOne(
+            'SELECT ST_Y(coordinates::geometry) as lat, ST_X(coordinates::geometry) as lng FROM schools WHERE id = ?',
+            [$this->id]
+        );
+
+        if (!$result || $result->lat === null || $result->lng === null) {
+            return null;
+        }
+
+        return [
+            'latitude' => (float) $result->lat,
+            'longitude' => (float) $result->lng,
+        ];
+    }
+
+    /**
      * Laporan kerusakan fisik pada sekolah ini (Domain 2 / PBI-04).
      */
     public function damageReports(): HasMany
