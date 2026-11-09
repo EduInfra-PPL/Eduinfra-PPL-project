@@ -24,3 +24,6 @@ Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
         return view('pendanaan.index');
     })->name('index');
 });
+
+// Domain 5: Registrasi akun pengguna
+require __DIR__.'/registration.php';
