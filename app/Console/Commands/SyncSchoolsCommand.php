@@ -2,6 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Services\ApiIndonesia\ApiIndonesiaSchoolSource;
+use App\Services\ApiIndonesia\SchoolDirectoryClient;
+use App\Services\ApiIndonesia\SchoolDirectoryMapper;
 use App\Services\Osm\OsmSchoolImporter;
 use App\Services\Osm\OverpassClient;
 use App\Services\Dapodik\CsvSchoolSource;
@@ -20,7 +23,7 @@ use RuntimeException;
 class SyncSchoolsCommand extends Command
 {
     protected $signature = 'schools:sync
-        {--source=csv : Sumber data: csv, dapodik, atau osm}
+        {--source=csv : Sumber data: csv, dapodik, apiindonesia, atau osm}
         {--path= : Lokasi berkas CSV (menimpa DAPODIK_CSV_PATH)}
         {--chunk=500 : Jumlah baris per batch impor}
         {--province=* : Kode provinsi tertentu untuk --source=osm (default semua)}';
@@ -161,6 +164,11 @@ class SyncSchoolsCommand extends Command
                 (string) config('dapodik.csv.delimiter', ','),
             ),
             'dapodik' => new DapodikWebserviceSource($mapper, config('dapodik.webservice')),
+            'apiindonesia' => new ApiIndonesiaSchoolSource(
+                new SchoolDirectoryClient,
+                new SchoolDirectoryMapper,
+                array_filter(['province_id' => $this->option('province')[0] ?? null]),
+            ),
             default => throw new RuntimeException('Sumber tidak dikenal. Pilih --source=csv atau --source=dapodik.'),
         };
     }
