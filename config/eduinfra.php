@@ -19,4 +19,13 @@ return [
         explode(',', (string) env('EDUINFRA_WRITE_MIDDLEWARE', 'auth:sanctum,role:admin'))
     ))),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Berkas CA untuk HTTPS keluar (sinkronisasi wilayah-id / Overpass)
+    |--------------------------------------------------------------------------
+    | Kosongkan untuk memakai verifikasi default. Isi bila PHP di mesin Anda
+    | tidak punya sertifikat root (contoh Windows): path ca-bundle.crt.
+    */
+    'ca_bundle' => env('EDUINFRA_CA_BUNDLE') ?: true,
+
 ];
