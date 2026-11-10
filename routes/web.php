@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AidCampaignController;
 use App\Http\Controllers\DamageReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,9 +21,8 @@ Route::prefix('reports')->name('reports.')->group(function () {
 
 // Domain 4: Pendanaan Bantuan, CSR & Pencairan Anggaran
 Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
-    Route::get('/', function () {
-        return view('pendanaan.index');
-    })->name('index');
+    Route::get('/', [AidCampaignController::class, 'index'])->name('index');
+    Route::post('/', [AidCampaignController::class, 'store'])->name('store');
 });
 
 // Domain 5: Registrasi akun pengguna
