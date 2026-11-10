@@ -44,7 +44,7 @@
                 </a>
 
                 <!-- Matching CSR -->
-                <a href="#csr" 
+                <a href="{{ route('pendanaan.index') }}" 
                    class="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-full transition-all {{ $active === 'csr' ? 'bg-[#14171F] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white' }}">
                     <svg class="w-3.5 h-3.5 {{ $active === 'csr' ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -138,6 +138,21 @@
                                 <div class="text-[11px] text-slate-500 truncate">{{ auth()->user()->email }}</div>
                             </div>
 
+                            @if (auth()->user()->role_enum === 'admin_dinas')
+                                <a href="{{ route('admin.schools.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                                    <x-ui.icon name="building" class="w-4 h-4" />
+                                    Profil Sekolah
+                                </a>
+                                <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                                    <x-ui.icon name="user" class="w-4 h-4" />
+                                    Daftar Pengguna
+                                </a>
+                                <a href="{{ route('admin.registrations.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                                    <x-ui.icon name="identification" class="w-4 h-4" />
+                                    Persetujuan Registrasi
+                                </a>
+                            @endif
+
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-red-600 font-semibold hover:bg-red-50 transition-colors">
@@ -159,4 +174,3 @@
 
     </div>
 </header>
-

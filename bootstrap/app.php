@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAdminDinas;
 use App\Http\Middleware\HandleAppearance;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+
+        // Alias untuk rute tulis API (lihat config/eduinfra.php -> write_middleware)
+        $middleware->alias(['admin.dinas' => EnsureAdminDinas::class]);
 
         $middleware->web(append: [
             HandleAppearance::class,

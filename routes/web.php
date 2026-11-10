@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AidCampaignController;
 use App\Http\Controllers\DamageReportController;
 use App\Http\Controllers\ReportMediaController;
 use Illuminate\Support\Facades\Route;
@@ -22,3 +23,15 @@ Route::prefix('reports')->name('reports.')->group(function () {
     Route::post('/{report}/media', [ReportMediaController::class, 'store'])->name('media.store');
     Route::delete('/media/{media}', [ReportMediaController::class, 'destroy'])->name('media.destroy');
 });
+
+// Domain 4: Pendanaan Bantuan, CSR & Pencairan Anggaran
+Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
+    Route::get('/', [AidCampaignController::class, 'index'])->name('index');
+    Route::post('/', [AidCampaignController::class, 'store'])->name('store');
+});
+
+// Domain 1: Profil sekolah (PBI-01)
+require __DIR__.'/schools.php';
+
+// Domain 5: Registrasi akun pengguna
+require __DIR__.'/registration.php';
