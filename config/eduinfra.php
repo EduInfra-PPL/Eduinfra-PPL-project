@@ -27,6 +27,6 @@ return [
     | Kosongkan untuk memakai verifikasi default. Isi bila PHP di mesin Anda
     | tidak punya sertifikat root (contoh Windows): path ca-bundle.crt.
     */
-    'ca_bundle' => env('EDUINFRA_CA_BUNDLE') ?: true,
+    'ca_bundle' => env('EDUINFRA_CA_BUNDLE') ?: (ini_get('curl.cainfo') ?: (ini_get('openssl.cafile') ?: (is_file('C:/Program Files/Git/usr/ssl/certs/ca-bundle.crt') ? 'C:/Program Files/Git/usr/ssl/certs/ca-bundle.crt' : true))),
 
 ];

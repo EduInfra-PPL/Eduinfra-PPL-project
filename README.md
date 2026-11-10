@@ -168,6 +168,12 @@ Langkah ini memastikan proyek jalan tanpa error di komputer lain.
    ```
    Untuk pengembangan frontend, pakai `npm run dev` di terminal terpisah.
 
+Setelah langkah di atas, jalankan pemeriksaan otomatis. Perintah ini tidak mengubah data:
+```bash
+php artisan setup:check
+```
+Semua baris berstatus OK berarti komputer siap dipakai. Baris GAGAL harus diperbaiki, sedangkan PERINGATAN boleh dilewati sementara.
+
 ### Masalah umum
 
 | Gejala | Penyebab | Solusi |
