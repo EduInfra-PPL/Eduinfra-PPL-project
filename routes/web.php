@@ -25,5 +25,8 @@ Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
     Route::post('/', [AidCampaignController::class, 'store'])->name('store');
 });
 
+// Domain 1: Profil sekolah (PBI-01)
+require __DIR__.'/schools.php';
+
 // Domain 5: Registrasi akun pengguna
 require __DIR__.'/registration.php';

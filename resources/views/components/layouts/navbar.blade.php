@@ -139,6 +139,10 @@
                             </div>
 
                             @if (auth()->user()->role_enum === 'admin_dinas')
+                                <a href="{{ route('admin.schools.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                                    <x-ui.icon name="building" class="w-4 h-4" />
+                                    Profil Sekolah
+                                </a>
                                 <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
                                     <x-ui.icon name="user" class="w-4 h-4" />
                                     Daftar Pengguna
