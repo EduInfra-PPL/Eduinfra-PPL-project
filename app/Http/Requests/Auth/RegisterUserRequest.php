@@ -53,7 +53,7 @@ class RegisterUserRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::exists('regions', 'id')->where(
-                    fn ($query) => $query->where('level', 'kab')->where('is_3t_tier', '>', 0),
+                    fn ($query) => $query->where('level', 'kab')->where('is_3t', true),
                 ),
             ],
             'organization' => ['required', 'string', 'max:150'],

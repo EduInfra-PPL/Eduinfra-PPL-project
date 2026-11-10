@@ -2,6 +2,7 @@
 
 namespace App\Services\Pendanaan;
 
+use App\Enums\ThreeTCategory;
 use App\Models\AidCampaign;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -26,7 +27,7 @@ use Illuminate\Support\Facades\Schema;
  *    - `damage_reports` : id, school_id, category_id, title, description,
  *                         severity_level (1-5), status ('verified')
  *    - `schools`        : id, region_id, npsn, name, address
- *    - `regions`        : id, name, is_3t_tier (0|1|2)
+ *    - `regions`        : id, name, is_3t (turunan), is_tertinggal, is_terdepan, is_terluar
  *    - `audit_logs` (opsional jika tabel tersedia): report_id, inspection_date,
  *                         physical_score (0.0-5.0), audit_status ('Approved')
  *    - `report_media` (opsional jika tabel tersedia): report_id, media_url
@@ -147,7 +148,10 @@ class VerifiedProjectLookupService
             's.name as school_name',
             's.address as school_address',
             'r.name as region_name',
-            'r.is_3t_tier',
+            'r.is_3t',
+            'r.is_tertinggal',
+            'r.is_terdepan',
+            'r.is_terluar',
             $hasCategories ? 'fc.name as category_name' : DB::raw("'Bantuan Fisik' as category_name"),
             $hasCategories ? 'fc.sub_category as sub_category_name' : DB::raw("'' as sub_category_name"),
         ];
@@ -187,7 +191,7 @@ class VerifiedProjectLookupService
                 };
 
             $severityLabel = $severityLevel >= 4 ? 'Rusak Berat' : ($severityLevel === 3 ? 'Rusak Sedang' : 'Ringan');
-            $is3t = ((int) $row->is_3t_tier) > 0;
+            $is3t = ThreeTCategory::isTruthy($row->is_3t);
             $verifiedDate = ! empty($row->inspection_date)
                 ? Carbon::parse($row->inspection_date)->translatedFormat('d F Y')
                 : now()->translatedFormat('d F Y');
@@ -198,7 +202,7 @@ class VerifiedProjectLookupService
                 'school_name' => (string) $row->school_name,
                 'npsn' => (string) $row->npsn,
                 'is_3t' => $is3t,
-                'category_3t_label' => $is3t ? 'Terluar / Perbatasan' : 'Wilayah Non-3T',
+                'category_3t_label' => ThreeTCategory::labelFor($row) ?? 'Wilayah Non-3T',
                 'location' => trim(($row->school_address ? $row->school_address . ', ' : '') . $row->region_name, ', '),
                 'region_short' => (string) $row->region_name,
                 'verified_at' => $verifiedDate,
