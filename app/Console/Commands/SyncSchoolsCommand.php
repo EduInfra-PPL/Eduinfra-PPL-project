@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\ApiIndonesia\ApiIndonesiaSchoolSource;
+use App\Services\ApiIndonesia\NpsnMatcher;
 use App\Services\ApiIndonesia\SchoolDirectoryClient;
 use App\Services\ApiIndonesia\SchoolDirectoryMapper;
 use App\Services\Osm\OsmSchoolImporter;
@@ -26,11 +27,11 @@ class SyncSchoolsCommand extends Command
         {--source=csv : Sumber data: csv, dapodik, apiindonesia, atau osm}
         {--path= : Lokasi berkas CSV (menimpa DAPODIK_CSV_PATH)}
         {--chunk=500 : Jumlah baris per batch impor}
-        {--province=* : Kode provinsi tertentu untuk --source=osm (default semua)}';
+        {--province=* : Kode provinsi tertentu untuk --source=osm atau apiindonesia (default semua)}';
 
-    protected $description = 'Sinkronkan data sekolah dari CSV/Dapodik (upsert per NPSN) atau OpenStreetMap (upsert per osm_id)';
+    protected $description = 'Sinkronkan data sekolah dari CSV/Dapodik (upsert per NPSN), API Indonesia, atau OpenStreetMap (upsert per osm_id)';
 
-    public function handle(SchoolImporter $importer, OverpassClient $overpass, OsmSchoolImporter $osm): int
+    public function handle(SchoolImporter $importer, OverpassClient $overpass, OsmSchoolImporter $osm, NpsnMatcher $matcher): int
     {
         if ($this->option('source') === 'osm') {
             // respons Overpass per provinsi bisa besar; ini proses CLI
@@ -38,6 +39,13 @@ class SyncSchoolsCommand extends Command
             set_time_limit(0);
 
             return $this->syncOsm($overpass, $osm);
+        }
+
+        if ($this->option('source') === 'apiindonesia') {
+            ini_set('memory_limit', '1024M');
+            set_time_limit(0);
+
+            return $this->syncApiIndonesia($importer, $matcher);
         }
 
         try {
@@ -153,6 +161,101 @@ class SyncSchoolsCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * Direktori API Indonesia per kabupaten/kota (menghindari batas offset 5.000 per kueri).
+     * Sekolah yang punya koordinat diimpor sebagai sekolah baru (upsert per NPSN). Sekolah tanpa
+     * koordinat dicocokkan dengan sekolah OSM yang sudah ada, lalu NPSN dan kontaknya diisi.
+     */
+    private function syncApiIndonesia(SchoolImporter $importer, NpsnMatcher $matcher): int
+    {
+        $provinces = array_map('strval', (array) $this->option('province'));
+
+        $regencies = DB::table('regions')
+            ->where('level', 'kab')
+            ->when($provinces !== [], function ($query) use ($provinces) {
+                $query->where(function ($w) use ($provinces) {
+                    foreach ($provinces as $code) {
+                        $w->orWhere('code', 'like', $code.'.%');
+                    }
+                });
+            })
+            ->orderBy('code')
+            ->pluck('code');
+
+        if ($regencies->isEmpty()) {
+            $this->error('Tidak ada kabupaten/kota di tabel regions. Jalankan: php artisan regions:sync-wilayah');
+
+            return self::FAILURE;
+        }
+
+        $source = new ApiIndonesiaSchoolSource(
+            new SchoolDirectoryClient,
+            new SchoolDirectoryMapper,
+            $regencies->map(fn (string $code): array => ['kabupaten_id' => str_replace('.', '', $code)])->all(),
+        );
+
+        $chunkSize = max(1, (int) $this->option('chunk'));
+        $totals = ['created' => 0, 'updated' => 0, 'failed' => 0, 'matched' => 0, 'skipped' => []];
+        $offset = 0;
+        $buffer = [];
+
+        $this->info("Sumber: {$source->name()}");
+
+        try {
+            foreach ($source->records() as $record) {
+                $buffer[] = $record;
+                if (count($buffer) >= $chunkSize) {
+                    $this->flushApiIndonesia($importer, $matcher, $buffer, $offset, $totals);
+                    $offset += count($buffer);
+                    $buffer = [];
+                }
+            }
+            if ($buffer !== []) {
+                $this->flushApiIndonesia($importer, $matcher, $buffer, $offset, $totals);
+            }
+        } catch (RuntimeException $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
+
+        $this->newLine();
+        $this->table(
+            ['Dibuat', 'Diperbarui', 'Gagal', 'Dipasangkan ke OSM'],
+            [[$totals['created'], $totals['updated'], $totals['failed'], $totals['matched']]]
+        );
+        foreach ($totals['skipped'] as $reason => $count) {
+            $this->line("Dilewati ({$reason}): {$count}");
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $buffer
+     * @param  array{created: int, updated: int, failed: int, matched: int, skipped: array<string, int>}  $totals
+     */
+    private function flushApiIndonesia(SchoolImporter $importer, NpsnMatcher $matcher, array $buffer, int $offset, array &$totals): void
+    {
+        $withCoords = array_values(array_filter($buffer, fn (array $r): bool => $r['lat'] !== null && $r['lng'] !== null));
+        $withoutCoords = array_values(array_filter($buffer, fn (array $r): bool => $r['lat'] === null || $r['lng'] === null));
+
+        if ($withCoords !== []) {
+            $result = $importer->import($withCoords, $offset);
+            $totals['created'] += $result['created'];
+            $totals['updated'] += $result['updated'];
+            $totals['failed'] += $result['failed'];
+        }
+
+        if ($withoutCoords !== []) {
+            $result = $matcher->match($withoutCoords);
+            $totals['matched'] += $result['matched'];
+            foreach ($result['skipped'] as $reason => $count) {
+                $totals['skipped'][$reason] = ($totals['skipped'][$reason] ?? 0) + $count;
+            }
+        }
+    }
+
     private function makeSource(): SchoolSource
     {
         $mapper = new SchoolRecordMapper(config('dapodik.fields'));
@@ -164,11 +267,6 @@ class SyncSchoolsCommand extends Command
                 (string) config('dapodik.csv.delimiter', ','),
             ),
             'dapodik' => new DapodikWebserviceSource($mapper, config('dapodik.webservice')),
-            'apiindonesia' => new ApiIndonesiaSchoolSource(
-                new SchoolDirectoryClient,
-                new SchoolDirectoryMapper,
-                array_map('strval', (array) $this->option('province')),
-            ),
             default => throw new RuntimeException('Sumber tidak dikenal. Pilih --source=csv atau --source=dapodik.'),
         };
     }
