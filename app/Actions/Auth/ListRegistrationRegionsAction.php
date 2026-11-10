@@ -25,7 +25,7 @@ class ListRegistrationRegionsAction
         return Region::query()
             ->select(Region::COLUMNS)
             ->where('level', 'kab')
-            ->where('is_3t_tier', '>', 0)
+            ->where('is_3t', true)
             ->orderBy('name')
             ->get()
             ->map(fn (Region $region): array => [
