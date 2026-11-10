@@ -24,7 +24,7 @@ class SchoolDirectoryClient
     /**
      * Seluruh sekolah, halaman demi halaman. Tiap pemanggilan API dihitung kredit oleh penyedia.
      *
-     * @param  array<string, string>  $filters  mis. ['jenis' => 'SD', 'province_id' => '32']
+     * @param  array<string, string>  $filters  mis. ['provinsi_id' => '32', 'jenis' => 'SD']
      * @return Generator<int, array<string, mixed>>
      */
     public function schools(array $filters = []): Generator

@@ -11,24 +11,32 @@ use Generator;
  */
 class ApiIndonesiaSchoolSource implements SchoolSource
 {
+    /** @param  list<string>  $provinceCodes  kode provinsi (mis. ['32']); kosong = seluruh Indonesia */
     public function __construct(
         private SchoolDirectoryClient $client,
         private SchoolDirectoryMapper $mapper,
-        private array $filters = [],
+        private array $provinceCodes = [],
     ) {}
 
     public function name(): string
     {
-        return 'apiindonesia';
+        return 'apiindonesia'.($this->provinceCodes === [] ? '' : ' provinsi '.implode(',', $this->provinceCodes));
     }
 
     /** @return Generator<int, array<string, mixed>> */
     public function records(): Generator
     {
-        foreach ($this->client->schools($this->filters) as $row) {
-            ['record' => $record] = $this->mapper->toRecord($row);
-            if ($record !== null) {
-                yield $record;
+        // parameter filter provinsi di API adalah provinsi_id (province_id diabaikan API)
+        $filterSets = $this->provinceCodes === []
+            ? [[]]
+            : array_map(fn (string $code): array => ['provinsi_id' => $code], $this->provinceCodes);
+
+        foreach ($filterSets as $filters) {
+            foreach ($this->client->schools($filters) as $row) {
+                ['record' => $record] = $this->mapper->toRecord($row);
+                if ($record !== null) {
+                    yield $record;
+                }
             }
         }
     }

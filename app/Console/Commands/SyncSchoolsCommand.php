@@ -167,7 +167,7 @@ class SyncSchoolsCommand extends Command
             'apiindonesia' => new ApiIndonesiaSchoolSource(
                 new SchoolDirectoryClient,
                 new SchoolDirectoryMapper,
-                array_filter(['province_id' => $this->option('province')[0] ?? null]),
+                array_map('strval', (array) $this->option('province')),
             ),
             default => throw new RuntimeException('Sumber tidak dikenal. Pilih --source=csv atau --source=dapodik.'),
         };
