@@ -3,10 +3,15 @@
 namespace App\Actions\Reports;
 
 use App\Models\DamageReport;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 class CreateDamageReportAction
 {
+    public function __construct(
+        protected ?ProcessReportMediaAction $mediaAction = null
+    ) {}
+
     /**
      * Eksekusi penyimpanan laporan kerusakan baru dengan nomor tiket unik.
      * Sesuai standar arsitektur AGENT_RULE.md: dibungkus DB::transaction.
@@ -19,7 +24,7 @@ class CreateDamageReportAction
             $year = date('Y');
             $ticketNum = $this->generateUniqueTicketNumber($year);
 
-            return DamageReport::create([
+            $report = DamageReport::create([
                 'ticket_num' => $ticketNum,
                 'school_id' => $data['school_id'],
                 'category_id' => $data['category_id'],
@@ -29,6 +34,17 @@ class CreateDamageReportAction
                 'severity_level' => (int) $data['severity_level'],
                 'status' => 'pending',
             ]);
+
+            // Jika terdapat berkas foto bukti fisik yang dilampirkan (PBI-05)
+            if (!empty($data['photos']) && is_array($data['photos']) && $this->mediaAction) {
+                foreach ($data['photos'] as $photo) {
+                    if ($photo instanceof UploadedFile) {
+                        $this->mediaAction->execute($report, $photo);
+                    }
+                }
+            }
+
+            return $report;
         });
     }
 
