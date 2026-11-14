@@ -4,7 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\DamageReport;
 use App\Models\FacilityCategory;
+use App\Models\ReportMedia;
 use App\Models\School;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DamageReportTest extends TestCase
@@ -125,12 +128,103 @@ class DamageReportTest extends TestCase
         $this->assertTrue(method_exists($report, 'school'));
         $this->assertTrue(method_exists($report, 'category'));
         $this->assertTrue(method_exists($report, 'reporter'));
+        $this->assertTrue(method_exists($report, 'media'));
 
         $school = new School();
         $this->assertTrue(method_exists($school, 'damageReports'));
 
         $category = new FacilityCategory();
         $this->assertTrue(method_exists($category, 'damageReports'));
+    }
+
+    /**
+     * Uji validasi berkas foto pada request pembuatan laporan (PBI-05).
+     */
+    public function test_reports_store_validates_photos_array_and_mimes(): void
+    {
+        $school = School::active()->first();
+        $category = FacilityCategory::where('is_enabled', true)->first();
+
+        // 1. Uji berkas bukan gambar (misal file text/pdf)
+        $invalidFile = UploadedFile::fake()->create('dokumen.pdf', 100, 'application/pdf');
+        $payloadInvalidMime = [
+            'school_id' => $school->id,
+            'category_id' => $category->id,
+            'title' => 'Laporan Uji Format Salah',
+            'description' => 'Deskripsi laporan uji format file bukan gambar.',
+            'severity_level' => 3,
+            'photos' => [$invalidFile],
+        ];
+
+        $responseInvalid = $this->post(route('reports.store'), $payloadInvalidMime);
+        $responseInvalid->assertSessionHasErrors(['photos.0']);
+
+        // 2. Uji batas maksimal 5 berkas foto
+        $tooManyPhotos = [
+            UploadedFile::fake()->image('foto1.jpg'),
+            UploadedFile::fake()->image('foto2.jpg'),
+            UploadedFile::fake()->image('foto3.jpg'),
+            UploadedFile::fake()->image('foto4.jpg'),
+            UploadedFile::fake()->image('foto5.jpg'),
+            UploadedFile::fake()->image('foto6.jpg'),
+        ];
+        $payloadTooMany = [
+            'school_id' => $school->id,
+            'category_id' => $category->id,
+            'title' => 'Laporan Uji Lebih Dari 5 Foto',
+            'description' => 'Deskripsi laporan uji kuota unggahan melebihi batas 5 foto.',
+            'severity_level' => 3,
+            'photos' => $tooManyPhotos,
+        ];
+
+        $responseTooMany = $this->post(route('reports.store'), $payloadTooMany);
+        $responseTooMany->assertSessionHasErrors(['photos']);
+    }
+
+    /**
+     * Uji alur E2E pembuatan laporan baru beserta lampiran berkas foto bukti fisik (PBI-05).
+     */
+    public function test_reports_store_with_photos_creates_report_and_media_records_e2e(): void
+    {
+        Storage::fake('public');
+
+        $school = School::active()->first();
+        $category = FacilityCategory::where('is_enabled', true)->first();
+
+        $photo1 = UploadedFile::fake()->image('atap_rusak.jpg', 800, 600);
+        $photo2 = UploadedFile::fake()->image('plafon_ambruk.png', 800, 600);
+
+        $payload = [
+            'school_id' => $school->id,
+            'category_id' => $category->id,
+            'title' => 'Kerusakan Berat Ruang Kelas E2E PBI-05',
+            'description' => 'Atap dan plafon ruang kelas 2 ambruk membutuhkan renovasi darurat.',
+            'severity_level' => 5,
+            'photos' => [$photo1, $photo2],
+        ];
+
+        $response = $this->post(route('reports.store'), $payload);
+
+        $response->assertRedirect(route('reports.index'));
+        $response->assertSessionHas('success');
+
+        $report = DamageReport::where('title', 'Kerusakan Berat Ruang Kelas E2E PBI-05')->first();
+        $this->assertNotNull($report, 'Record laporan kerusakan harus berhasil dibuat.');
+        $this->assertStringStartsWith('RPT-', $report->ticket_num);
+
+        // Verifikasi relasi media terbuat dan terhubung
+        $this->assertEquals(2, $report->media()->count());
+
+        $mediaItems = $report->media()->get();
+        foreach ($mediaItems as $media) {
+            $this->assertEquals($report->id, $media->report_id);
+            $this->assertNotEmpty($media->media_path);
+            $this->assertTrue(Storage::disk('public')->exists($media->media_path));
+        }
+
+        // Cleanup
+        $report->media()->delete();
+        $report->delete();
     }
 }
 
