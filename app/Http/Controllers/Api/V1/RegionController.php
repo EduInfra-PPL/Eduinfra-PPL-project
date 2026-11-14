@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Regions\UpdateRegionCategoriesAction;
+use App\Enums\ThreeTCategory;
 use App\Http\Controllers\Api\V1\Concerns\ApiResponses;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Regions\UpdateRegionCategoriesRequest;
 use App\Models\Region;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -22,6 +25,9 @@ class RegionController extends Controller
 
     public const LEVELS = ['prov', 'kab', 'kec'];
 
+    /** Kolom 3T yang ikut dibaca di setiap respons wilayah. */
+    private const THREE_T_SELECT = 'is_3t_tier, is_3t, is_tertinggal, is_terdepan, is_terluar';
+
     // ------------------------------------------------------------------ READ
 
     /** GET /regions - daftar wilayah tanpa geometri. */
@@ -32,6 +38,7 @@ class RegionController extends Controller
             'level' => ['nullable', Rule::in(self::LEVELS)],
             'code_prefix' => ['nullable', 'string', 'max:20'],
             'is_3t' => ['nullable', 'in:true,false,1,0'],
+            'category' => ['nullable', Rule::in(ThreeTCategory::values())],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:500'],
         ]);
@@ -47,22 +54,27 @@ class RegionController extends Controller
             $query->where('code', 'like', $this->escapeLike($v['code_prefix']) . '%');
         }
         if (filled($v['is_3t'] ?? null)) {
-            $query->where('is_3t_tier', filter_var($v['is_3t'], FILTER_VALIDATE_BOOLEAN) ? '>' : '=', 0);
+            $query->where('is_3t', filter_var($v['is_3t'], FILTER_VALIDATE_BOOLEAN));
+        }
+        if (filled($v['category'] ?? null)) {
+            $query->where(ThreeTCategory::from($v['category'])->column(), true);
         }
 
         $page = $query
-            ->selectRaw('id, code, name, level, is_3t_tier, (boundary_polygon IS NOT NULL) AS has_boundary')
+            ->selectRaw('id, code, name, level, (boundary_polygon IS NOT NULL) AS has_boundary, ' . self::THREE_T_SELECT)
             ->orderBy('code')
             ->paginate((int) ($v['per_page'] ?? 100));
 
-        return $this->ok($page->items(), $this->pageMeta($page));
+        $items = array_map(fn (object $row): object => ThreeTCategory::decorate($row), $page->items());
+
+        return $this->ok($items, $this->pageMeta($page));
     }
 
     /** GET /regions/{id} - detail + poligon (GeoJSON geometry). */
     public function show(int $id): JsonResponse
     {
         $row = DB::table('regions')->where('id', $id)
-            ->selectRaw('id, code, name, level, is_3t_tier, ST_AsGeoJSON(boundary_polygon::geometry) AS geometry')
+            ->selectRaw('id, code, name, level, ST_AsGeoJSON(boundary_polygon::geometry) AS geometry, ' . self::THREE_T_SELECT)
             ->first();
 
         if (! $row) {
@@ -70,7 +82,7 @@ class RegionController extends Controller
         }
         $row->geometry = $row->geometry ? json_decode($row->geometry) : null;
 
-        return $this->ok($row);
+        return $this->ok(ThreeTCategory::decorate($row));
     }
 
     /**
@@ -83,6 +95,7 @@ class RegionController extends Controller
             'level' => ['nullable', Rule::in(self::LEVELS)],
             'code_prefix' => ['nullable', 'string', 'max:20'],
             'is_3t' => ['nullable', 'in:true,false,1,0'],
+            'category' => ['nullable', Rule::in(ThreeTCategory::values())],
             'simplify' => ['nullable', 'numeric', 'min:0', 'max:1'],
         ]);
 
@@ -99,7 +112,10 @@ class RegionController extends Controller
             $bindings[] = $this->escapeLike($v['code_prefix']) . '%';
         }
         if (filled($v['is_3t'] ?? null)) {
-            $where[] = filter_var($v['is_3t'], FILTER_VALIDATE_BOOLEAN) ? 'is_3t_tier > 0' : 'is_3t_tier = 0';
+            $where[] = filter_var($v['is_3t'], FILTER_VALIDATE_BOOLEAN) ? 'is_3t' : 'NOT is_3t';
+        }
+        if (filled($v['category'] ?? null)) {
+            $where[] = ThreeTCategory::from($v['category'])->column();
         }
 
         $row = DB::selectOne(
@@ -109,7 +125,9 @@ class RegionController extends Controller
                                                       THEN ST_SimplifyPreserveTopology(boundary_polygon::geometry, CAST(? AS float8))
                                                       ELSE boundary_polygon::geometry END)::jsonb,
                         'properties', jsonb_build_object(
-                            'id', id, 'code', code, 'name', name, 'level', level, 'is_3t_tier', is_3t_tier)
+                            'id', id, 'code', code, 'name', name, 'level', level, 'is_3t_tier', is_3t_tier,
+                            'is_3t', is_3t, 'is_tertinggal', is_tertinggal,
+                            'is_terdepan', is_terdepan, 'is_terluar', is_terluar)
                     )), '[]'::jsonb) AS features
              FROM regions WHERE " . implode(' AND ', $where),
             $bindings
@@ -130,7 +148,7 @@ class RegionController extends Controller
         ]);
 
         $rows = DB::select(
-            "SELECT id, code, name, level, is_3t_tier
+            "SELECT id, code, name, level, " . self::THREE_T_SELECT . "
              FROM regions
              WHERE boundary_polygon IS NOT NULL
                AND ST_Covers(boundary_polygon,
@@ -139,14 +157,16 @@ class RegionController extends Controller
             [$v['lng'], $v['lat']]
         );
 
-        return $this->ok($rows);
+        return $this->ok(array_map(fn (object $row): object => ThreeTCategory::decorate($row), $rows));
     }
 
     // ----------------------------------------------------------------- WRITE
 
     /**
      * POST /regions/import - impor GeoJSON FeatureCollection (FR-02), upsert berdasarkan code.
-     * properties: { code, name, level: prov|kab|kec, is_3t_tier?: 0|1|2 }.
+     * properties: { code, name, level: prov|kab|kec, is_3t_tier?: 0|1|2,
+     *               is_tertinggal?, is_terdepan?, is_terluar?: bool }.
+     * Tier > 0 tanpa is_tertinggal eksplisit dianggap daerah tertinggal (Tier-1 = Perpres 63/2020).
      * Polygon dinormalkan menjadi MultiPolygon dan diperbaiki (ST_MakeValid) bila perlu.
      * Tiap fitur diproses mandiri; yang gagal dilaporkan tanpa menghentikan yang lain.
      */
@@ -170,6 +190,9 @@ class RegionController extends Controller
                 'properties.name' => ['required', 'string', 'max:150'],
                 'properties.level' => ['required', Rule::in(self::LEVELS)],
                 'properties.is_3t_tier' => ['nullable', 'integer', 'in:0,1,2'],
+                'properties.is_tertinggal' => ['nullable', 'boolean'],
+                'properties.is_terdepan' => ['nullable', 'boolean'],
+                'properties.is_terluar' => ['nullable', 'boolean'],
                 'geometry.type' => ['required', 'in:Polygon,MultiPolygon'],
                 'geometry.coordinates' => ['required', 'array'],
             ]);
@@ -180,6 +203,9 @@ class RegionController extends Controller
 
             $p = $feature['properties'];
             $tier = $p['is_3t_tier'] ?? null;
+            $tertinggal = $p['is_tertinggal'] ?? (($tier ?? 0) > 0 ? true : null);
+            $terdepan = $p['is_terdepan'] ?? null;
+            $terluar = $p['is_terluar'] ?? null;
 
             try {
                 $result = DB::transaction(fn () => DB::select(
@@ -187,16 +213,26 @@ class RegionController extends Controller
                          SELECT ST_Multi(ST_CollectionExtract(
                                     ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON(CAST(? AS text)), 4326)), 3)) AS geom
                      )
-                     INSERT INTO regions (code, name, level, boundary_polygon, is_3t_tier)
-                     SELECT ?, ?, ?, g.geom::geography, COALESCE(CAST(? AS smallint), 0)
+                     INSERT INTO regions (code, name, level, boundary_polygon, is_3t_tier,
+                                          is_tertinggal, is_terdepan, is_terluar)
+                     SELECT ?, ?, ?, g.geom::geography, COALESCE(CAST(? AS smallint), 0),
+                            COALESCE(CAST(? AS boolean), FALSE), COALESCE(CAST(? AS boolean), FALSE),
+                            COALESCE(CAST(? AS boolean), FALSE)
                      FROM g WHERE NOT ST_IsEmpty(g.geom)
                      ON CONFLICT (code) DO UPDATE SET
                          name = EXCLUDED.name,
                          level = EXCLUDED.level,
                          boundary_polygon = EXCLUDED.boundary_polygon,
-                         is_3t_tier = COALESCE(CAST(? AS smallint), regions.is_3t_tier)
+                         is_3t_tier = COALESCE(CAST(? AS smallint), regions.is_3t_tier),
+                         is_tertinggal = COALESCE(CAST(? AS boolean), regions.is_tertinggal),
+                         is_terdepan = COALESCE(CAST(? AS boolean), regions.is_terdepan),
+                         is_terluar = COALESCE(CAST(? AS boolean), regions.is_terluar)
                      RETURNING (xmax = 0) AS inserted",
-                    [json_encode($feature['geometry']), $p['code'], $p['name'], $p['level'], $tier, $tier]
+                    [
+                        json_encode($feature['geometry']), $p['code'], $p['name'], $p['level'], $tier,
+                        $tertinggal, $terdepan, $terluar,
+                        $tier, $tertinggal, $terdepan, $terluar,
+                    ]
                 ));
             } catch (QueryException $e) {
                 $errors[] = ['row' => $rowNo, 'code' => $p['code'],
@@ -219,7 +255,7 @@ class RegionController extends Controller
         ]);
     }
 
-    /** PATCH /regions/{id}/tier - perbarui status prioritas 3T (FR-02). */
+    /** PATCH /regions/{id}/tier - perbarui tingkat prioritas 3T (FR-02). */
     public function updateTier(Request $request, int $id): JsonResponse
     {
         $v = $request->validate(['is_3t_tier' => ['required', 'integer', 'in:0,1,2']]);
@@ -229,8 +265,24 @@ class RegionController extends Controller
             return $this->fail(404, 'Wilayah tidak ditemukan.');
         }
 
-        return $this->ok(DB::table('regions')->where('id', $id)
-            ->select('id', 'code', 'name', 'level', 'is_3t_tier')->first());
+        $row = DB::table('regions')->where('id', $id)
+            ->selectRaw('id, code, name, level, ' . self::THREE_T_SELECT)->first();
+
+        return $this->ok(ThreeTCategory::decorate($row));
+    }
+
+    /**
+     * PATCH /regions/{id}/categories - atur kategori 3T (tertinggal/terdepan/terluar).
+     * Body: { is_tertinggal?, is_terdepan?, is_terluar? } - minimal satu harus dikirim.
+     */
+    public function updateCategories(UpdateRegionCategoriesRequest $request, int $id, UpdateRegionCategoriesAction $action): JsonResponse
+    {
+        $region = $action->execute($id, $request->validated());
+        if ($region === null) {
+            return $this->fail(404, 'Wilayah tidak ditemukan.');
+        }
+
+        return $this->ok(ThreeTCategory::decorate((object) $region->toArray()));
     }
 
     /** DELETE /regions/{id} - hapus batas wilayah; ditolak 409 bila masih dipakai sekolah. */
