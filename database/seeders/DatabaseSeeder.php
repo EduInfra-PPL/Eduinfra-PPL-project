@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             Domain1Seeder::class,
             DamageReportSeeder::class,
             RenovationProjectSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }
