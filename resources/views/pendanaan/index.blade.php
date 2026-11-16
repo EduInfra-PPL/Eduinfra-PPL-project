@@ -25,6 +25,39 @@
             },
             formatRupiah(value) {
                 return new Intl.NumberFormat('id-ID').format(Number(value || 0));
+            },
+            contributeModalOpen: false,
+            selectedCampaign: null,
+            contributionAmount: 50000000,
+            contributionType: 'cash',
+            donorName: 'PT Telkom Indonesia Tbk',
+            donorUnit: 'CSR Divre VII',
+            contributionNote: '',
+            proofFileName: '',
+            contributeSubmitting: false,
+            openContributeModal(campaign) {
+                this.selectedCampaign = campaign;
+                const remaining = Math.max(0, Number(campaign.target_amount) - Number(campaign.collected_amount));
+                this.contributionAmount = Math.min(50000000, remaining || 50000000);
+                this.contributionNote = 'Komitmen revitalisasi ruang kelas ' + (campaign.school_name || '');
+                this.contributeModalOpen = true;
+            },
+            setAmountPreset(amount) {
+                this.contributionAmount = amount;
+            },
+            fillFullRemaining() {
+                if (this.selectedCampaign) {
+                    const remaining = Math.max(0, Number(this.selectedCampaign.target_amount) - Number(this.selectedCampaign.collected_amount));
+                    this.contributionAmount = remaining;
+                }
+            },
+            submitContributionMock() {
+                this.contributeSubmitting = true;
+                setTimeout(() => {
+                    this.contributeSubmitting = false;
+                    this.contributeModalOpen = false;
+                    alert('Komitmen bantuan CSR sebesar Rp ' + this.formatRupiah(this.contributionAmount) + ' berhasil diajukan dan tercatat pada sistem verifikasi BAP Kemendikbudristek!');
+                }, 600);
             }
         }" 
         class="space-y-8 pb-12"
@@ -166,7 +199,7 @@
             </div>
 
             <!-- Tile 3: Wall of Donors & Laporan -->
-            <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all cursor-pointer group">
+            <a href="{{ route('pendanaan.wall-of-donors') }}" class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all cursor-pointer group">
                 <div class="flex items-center gap-3.5">
                     <div class="w-11 h-11 rounded-xl bg-teal-50 border border-teal-100/80 flex items-center justify-center text-teal-600 shrink-0 group-hover:scale-105 transition-transform">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -184,7 +217,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
                     </svg>
                 </div>
-            </div>
+            </a>
 
         </div>
 
@@ -281,7 +314,11 @@
 
                         <!-- Card Action Footer -->
                         <div class="p-5 pt-0">
-                            <button type="button" class="w-full flex items-center justify-center gap-2 py-3 px-4 {{ $isNearGoal ? 'bg-[#14171F] hover:bg-slate-800' : 'bg-[#FF5C2A] hover:bg-[#e04f22]' }} text-white font-bold text-xs sm:text-sm rounded-2xl transition-all shadow-xs cursor-pointer">
+                            <button 
+                                type="button" 
+                                @click="openContributeModal(@js($campaign))"
+                                class="w-full flex items-center justify-center gap-2 py-3 px-4 {{ $isNearGoal ? 'bg-[#14171F] hover:bg-slate-800' : 'bg-[#FF5C2A] hover:bg-[#e04f22]' }} text-white font-bold text-xs sm:text-sm rounded-2xl transition-all shadow-xs cursor-pointer"
+                            >
                                 <span>{{ $isNearGoal ? 'Tutup Sisa Pendanaan' : 'Salurkan Komitmen CSR' }}</span>
                             </button>
                         </div>
@@ -727,6 +764,293 @@
                                 </div>
                             </div>
 
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 5. MODAL: SALURKAN KOMITMEN CSR (PBI-11)   -->
+        <!-- ========================================== -->
+        <div 
+            x-show="contributeModalOpen" 
+            x-cloak
+            class="fixed inset-0 z-50 overflow-y-auto"
+            aria-labelledby="modal-title" 
+            role="dialog" 
+            aria-modal="true"
+        >
+            <!-- Backdrop -->
+            <div 
+                x-show="contributeModalOpen"
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+                @click="contributeModalOpen = false"
+            ></div>
+
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                <div 
+                    x-show="contributeModalOpen"
+                    x-transition:enter="ease-out duration-300"
+                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                    x-transition:leave="ease-in duration-200"
+                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-slate-100"
+                >
+                    <div class="p-6 sm:p-8 space-y-6">
+
+                        <!-- Modal Header -->
+                        <div class="flex items-start justify-between pb-4 border-b border-slate-100">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-11 h-11 rounded-2xl bg-[#FFF1EB] text-[#FF5C2A] flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg sm:text-xl font-extrabold text-[#14171F]">
+                                        Salurkan Komitmen CSR / Donasi 3T
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">
+                                        Penyaluran terhubung verifikasi faktual lapangan &amp; fasilitas Super Tax Deduction 200%.
+                                    </p>
+                                </div>
+                            </div>
+                            <button 
+                                type="button" 
+                                @click="contributeModalOpen = false" 
+                                class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                            >
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Target Campaign Summary Card -->
+                        <template x-if="selectedCampaign">
+                            <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-3">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">
+                                                Sasaran Terverifikasi
+                                            </span>
+                                            <span class="text-[11px] font-semibold text-slate-500" x-text="'NPSN: ' + (selectedCampaign.npsn || '-')"></span>
+                                        </div>
+                                        <h4 class="font-extrabold text-sm sm:text-base text-slate-900 mt-1" x-text="selectedCampaign.school_name"></h4>
+                                        <p class="text-xs text-slate-500" x-text="selectedCampaign.location || selectedCampaign.title"></p>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase">Target RAB</p>
+                                        <p class="text-xs sm:text-sm font-extrabold text-slate-900" x-text="'Rp ' + formatRupiah(selectedCampaign.target_amount)"></p>
+                                    </div>
+                                </div>
+
+                                <!-- Mini Progress Bar -->
+                                <div class="space-y-1">
+                                    <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                        <div 
+                                            class="h-full bg-[#FF5C2A] rounded-full transition-all duration-300" 
+                                            :style="'width: ' + Math.min(100, Math.round((Number(selectedCampaign.collected_amount) / Number(selectedCampaign.target_amount)) * 100)) + '%'"
+                                        ></div>
+                                    </div>
+                                    <div class="flex justify-between text-[11px] text-slate-500">
+                                        <span>Terkumpul: <strong class="text-slate-800" x-text="'Rp ' + formatRupiah(selectedCampaign.collected_amount)"></strong></span>
+                                        <span>Kekurangan: <strong class="text-[#FF5C2A]" x-text="'Rp ' + formatRupiah(Math.max(0, Number(selectedCampaign.target_amount) - Number(selectedCampaign.collected_amount)))"></strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Form Input -->
+                        <form @submit.prevent="submitContributionMock" class="space-y-4">
+                            <!-- 1. Profil Mitra CSR / Donatur -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">
+                                    1. Entitas Mitra CSR / Donatur <span class="text-red-500">*</span>
+                                </label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <select 
+                                        x-model="donorName" 
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5C2A]/20 focus:border-[#FF5C2A]"
+                                    >
+                                        <option value="PT Telkom Indonesia Tbk">PT Telkom Indonesia Tbk (BUMN)</option>
+                                        <option value="PT Bank Rakyat Indonesia Tbk">PT Bank Rakyat Indonesia Tbk (BUMN)</option>
+                                        <option value="PT Astra International Tbk">PT Astra International Tbk</option>
+                                        <option value="PT Indofood CBP Tbk">PT Indofood CBP Tbk</option>
+                                        <option value="Yayasan Bakti BCA">Yayasan Bakti BCA</option>
+                                        <option value="MIND ID">MIND ID</option>
+                                        <option value="Donatur Individu / Korporasi Lainnya">Mitra Baru / Donatur Lainnya</option>
+                                    </select>
+                                    <input 
+                                        type="text" 
+                                        x-model="donorUnit" 
+                                        placeholder="Divisi / Unit (contoh: CSR & TJSL Divre VII)"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5C2A]/20 focus:border-[#FF5C2A]"
+                                    >
+                                </div>
+                            </div>
+
+                            <!-- 2. Pilihan Bentuk Bantuan -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">
+                                    2. Bentuk Komitmen Dukungan <span class="text-red-500">*</span>
+                                </label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <label 
+                                        class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all"
+                                        :class="contributionType === 'cash' ? 'border-[#FF5C2A] bg-[#FFF8F5] text-[#FF5C2A] font-bold' : 'border-slate-200 bg-white text-slate-600'"
+                                    >
+                                        <input type="radio" value="cash" x-model="contributionType" class="hidden">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                        </svg>
+                                        <span class="text-xs">Dana Tunai Rekonstruksi</span>
+                                    </label>
+
+                                    <label 
+                                        class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all"
+                                        :class="contributionType === 'goods' ? 'border-[#FF5C2A] bg-[#FFF8F5] text-[#FF5C2A] font-bold' : 'border-slate-200 bg-white text-slate-600'"
+                                    >
+                                        <input type="radio" value="goods" x-model="contributionType" class="hidden">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                        </svg>
+                                        <span class="text-xs">Barang / Material Bangunan</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- 3. Nominal Komitmen & Quick Preset -->
+                            <div class="space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-bold text-slate-700">
+                                        3. Nominal Komitmen Bantuan (Rp) <span class="text-red-500">*</span>
+                                    </label>
+                                    <span class="text-[11px] font-bold text-[#FF5C2A]" x-text="'Terbilang: Rp ' + formatRupiah(contributionAmount)"></span>
+                                </div>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-bold text-slate-400">Rp</span>
+                                    <input 
+                                        type="number" 
+                                        x-model.number="contributionAmount" 
+                                        min="1000000" 
+                                        step="500000"
+                                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF5C2A]/20 focus:border-[#FF5C2A]"
+                                    >
+                                </div>
+
+                                <!-- Preset Buttons -->
+                                <div class="flex items-center gap-1.5 pt-1 overflow-x-auto">
+                                    <button 
+                                        type="button" 
+                                        @click="setAmountPreset(25000000)" 
+                                        class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors shrink-0"
+                                    >
+                                        25 Juta
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        @click="setAmountPreset(50000000)" 
+                                        class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors shrink-0"
+                                    >
+                                        50 Juta
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        @click="setAmountPreset(100000000)" 
+                                        class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors shrink-0"
+                                    >
+                                        100 Juta
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        @click="fillFullRemaining()" 
+                                        class="px-2.5 py-1 bg-[#FFF1EB] hover:bg-[#FFE5DC] text-[#FF5C2A] text-[11px] font-bold rounded-lg transition-colors shrink-0 ml-auto"
+                                    >
+                                        Penuhi Sisa Target
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 4. Upload Dokumen Komitmen / Bukti MoU -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">
+                                    4. Surat Minat / MoU / Bukti Transfer Komitmen
+                                </label>
+                                <div class="p-4 border-2 border-dashed border-slate-200 rounded-2xl text-center bg-slate-50/60 hover:bg-slate-50 transition-colors cursor-pointer relative">
+                                    <input 
+                                        type="file" 
+                                        @change="proofFileName = $event.target.files[0] ? $event.target.files[0].name : ''" 
+                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    >
+                                    <div class="flex flex-col items-center justify-center space-y-1">
+                                        <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                        </svg>
+                                        <p class="text-xs font-bold text-slate-700" x-text="proofFileName || 'Klik atau tarik file dokumen (PDF, JPG, PNG max 5MB)'"></p>
+                                        <p class="text-[10px] text-slate-400">Dokumen akan diverifikasi BPKP &amp; diterbitkan bukti potong Super Tax 200%.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 5. Catatan / Program Khusus CSR -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-700">
+                                    5. Catatan Alokasi / Program CSR (Opsional)
+                                </label>
+                                <textarea 
+                                    x-model="contributionNote" 
+                                    rows="2" 
+                                    placeholder="Contoh: Program CSR Pilar Pendidikan PT Telkom untuk pembangunan 4 ruang kelas baru."
+                                    class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5C2A]/20 focus:border-[#FF5C2A]"
+                                ></textarea>
+                            </div>
+
+                            <!-- Legal / Compliance checkbox -->
+                            <div class="flex items-start gap-2 pt-1">
+                                <input type="checkbox" id="tax_agreed" checked class="mt-0.5 rounded text-[#FF5C2A] focus:ring-[#FF5C2A]">
+                                <label for="tax_agreed" class="text-[11px] text-slate-500 leading-snug">
+                                    Komitmen ini tunduk pada ketentuan audit fisik Kemendikbudristek dan berhak diajukan untuk pengurangan pajak bruto sesuai <strong>PMK-128 / PP 45/2019</strong>.
+                                </label>
+                            </div>
+
+                            <!-- Modal Footer Action -->
+                            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                                <button 
+                                    type="button" 
+                                    @click="contributeModalOpen = false" 
+                                    class="px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                                >
+                                    Batal
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    :disabled="contributeSubmitting || contributionAmount <= 0"
+                                    class="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#FF5C2A] hover:bg-[#e04f22] text-white text-xs sm:text-sm font-bold rounded-full transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                                >
+                                    <template x-if="contributeSubmitting">
+                                        <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </template>
+                                    <span>Konfirmasi Salurkan Komitmen CSR</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </form>
 
                     </div>

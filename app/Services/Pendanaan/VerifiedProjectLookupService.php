@@ -192,8 +192,9 @@ class VerifiedProjectLookupService
 
             $severityLabel = $severityLevel >= 4 ? 'Rusak Berat' : ($severityLevel === 3 ? 'Rusak Sedang' : 'Ringan');
             $is3t = ThreeTCategory::isTruthy($row->is_3t);
-            $verifiedDate = ! empty($row->inspection_date)
-                ? Carbon::parse($row->inspection_date)->translatedFormat('d F Y')
+            $inspectionDate = $row->inspection_date ?? null;
+            $verifiedDate = ! empty($inspectionDate)
+                ? Carbon::parse($inspectionDate)->translatedFormat('d F Y')
                 : now()->translatedFormat('d F Y');
 
             return [
@@ -219,7 +220,7 @@ class VerifiedProjectLookupService
                 'badge_label' => $severityLevel >= 5 ? 'Rusak Total' : ($row->sub_category_name ?: $row->category_name),
                 'default_title' => (string) $row->report_title,
                 'description' => (string) $row->report_description,
-                'image_url' => $row->media_url ?: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80',
+                'image_url' => ($row->media_url ?? null) ?: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80',
             ];
         });
     }

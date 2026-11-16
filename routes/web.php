@@ -40,6 +40,7 @@
     Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
         Route::get('/', [AidCampaignController::class, 'index'])->name('index');
         Route::post('/', [AidCampaignController::class, 'store'])->name('store');
+        Route::view('/wall-of-donors', 'pendanaan.wall-of-donors')->name('wall-of-donors');
     });
 
     // Domain 1: Profil sekolah (PBI-01)
