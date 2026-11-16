@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Model DamageReport - Tabel damage_reports (PBI-04 / FR-04).
@@ -72,6 +73,14 @@ class DamageReport extends Model
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reporter_id');
+    }
+
+    /**
+     * Berkas foto/media bukti fisik kerusakan (Domain 2: PBI-05).
+     */
+    public function media(): HasMany
+    {
+        return $this->hasMany(ReportMedia::class, 'report_id');
     }
 
     /*

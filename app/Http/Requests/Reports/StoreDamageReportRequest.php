@@ -28,6 +28,8 @@ class StoreDamageReportRequest extends FormRequest
             'title' => ['required', 'string', 'max:200'],
             'description' => ['required', 'string', 'min:10', 'max:1000'],
             'severity_level' => ['required', 'integer', 'min:1', 'max:5'],
+            'photos' => ['nullable', 'array', 'max:5'],
+            'photos.*' => ['file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
         ];
     }
 
@@ -50,6 +52,10 @@ class StoreDamageReportRequest extends FormRequest
             'description.max' => 'Deskripsi detail kerusakan maksimal 1000 karakter.',
             'severity_level.required' => 'Tingkat urgensi kerusakan (skala 1–5) wajib dipilih.',
             'severity_level.between' => 'Tingkat urgensi kerusakan harus berada di antara skala 1 hingga 5.',
+            'photos.max' => 'Maksimal 5 berkas foto bukti yang dapat diunggah sekaligus.',
+            'photos.*.image' => 'Berkas bukti harus berupa gambar/foto yang valid.',
+            'photos.*.mimes' => 'Format foto yang diizinkan hanya JPEG, JPG, PNG, atau WebP.',
+            'photos.*.max' => 'Ukuran masing-masing berkas foto maksimal adalah 10 MB.',
         ];
     }
 }

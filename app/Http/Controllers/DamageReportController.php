@@ -64,10 +64,11 @@ class DamageReportController extends Controller
      */
     public function create(): View
     {
-        // Dropdown dibatasi agar halaman tidak kehabisan memori. Data sekolah kini puluhan ribu baris;
-        // pencarian sekolah di formulir perlu dibuat terpisah (lihat catatan serah terima).
+        // Dropdown dibatasi agar halaman tidak kehabisan memori (data puluhan ribu baris).
+        // Ditambahkan selectRaw ST_Y & ST_X untuk ekstraksi koordinat WGS84 radar visualizer (PBI-05).
         $schools = School::active()
             ->select(['id', 'npsn', 'name', 'region_id', 'educational_level', 'address'])
+            ->selectRaw('ST_Y(coordinates::geometry) as latitude, ST_X(coordinates::geometry) as longitude')
             ->with(['region:id,name,code,is_3t_tier'])
             ->orderBy('name')
             ->limit(1000)
