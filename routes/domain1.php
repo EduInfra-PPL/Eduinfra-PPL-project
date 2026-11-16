@@ -34,6 +34,7 @@ Route::prefix('v1')->group(function () {
 
         Route::post('regions/import', [RegionController::class, 'import']);
         Route::patch('regions/{id}/tier', [RegionController::class, 'updateTier'])->whereNumber('id');
+        Route::patch('regions/{id}/categories', [RegionController::class, 'updateCategories'])->whereNumber('id');
         Route::delete('regions/{id}', [RegionController::class, 'destroy'])->whereNumber('id');
 
         Route::post('facility-categories', [FacilityCategoryController::class, 'store']);

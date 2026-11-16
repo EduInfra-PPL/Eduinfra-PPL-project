@@ -266,57 +266,5 @@
         </span>
     </div>
 
-    {{-- Logika tampilan form (state Alpine). Didaftarkan lewat event alpine:init karena Alpine dijalankan dari resources/js/app.js. --}}
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('registrationForm', (initial = {}) => ({
-                role: initial.role || 'verifikator_3t',
-                identity: initial.identity || '',
-                password: '',
-                confirmation: '',
-
-                // 'empty' | 'nip' (18 digit) | 'nik' (16 digit) | 'invalid'
-                get identityState() {
-                    const digits = this.identity.replace(/\D/g, '');
-
-                    if (digits.length === 0) return 'empty';
-                    if (digits.length === 18) return 'nip';
-                    if (digits.length === 16) return 'nik';
-
-                    return 'invalid';
-                },
-
-                // Skor 0-4: panjang >= 12, huruf besar+kecil, angka, simbol.
-                get score() {
-                    const value = this.password;
-                    if (!value) return 0;
-
-                    return [
-                        value.length >= 12,
-                        /[a-z]/.test(value) && /[A-Z]/.test(value),
-                        /\d/.test(value),
-                        /[^A-Za-z0-9]/.test(value),
-                    ].filter(Boolean).length;
-                },
-
-                get strengthLabel() {
-                    return ['', 'Lemah', 'Cukup', 'Kuat', 'Sangat Kuat'][this.score];
-                },
-
-                get strengthPercent() {
-                    return this.score * 25;
-                },
-
-                get strengthColor() {
-                    return ['bg-slate-200', 'bg-red-500', 'bg-amber-500', 'bg-emerald-400', 'bg-emerald-500'][this.score];
-                },
-
-                get confirmationState() {
-                    if (!this.confirmation) return 'empty';
-
-                    return this.confirmation === this.password ? 'match' : 'mismatch';
-                },
-            }));
-        });
-    </script>
+    {{-- State form (Alpine.data 'registrationForm') didaftarkan di resources/js/app.js dan memakai composable bersama. --}}
 </x-layouts.guest>

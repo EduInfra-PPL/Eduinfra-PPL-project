@@ -118,3 +118,75 @@ Buka 2 terminal terpisah:
 php artisan serve
 
 ```
+
+## 🧭 Menjalankan di Komputer Baru (Anggota Tim)
+
+Langkah ini memastikan proyek jalan tanpa error di komputer lain.
+
+### Prasyarat
+- PHP 8.2 atau lebih baru, dengan ekstensi `pdo_pgsql`, `curl`, dan `openssl` aktif
+- Composer dan Node.js 20 atau lebih baru
+- Docker Desktop (untuk PostgreSQL + PostGIS). Tanpa Docker, pakai PostgreSQL 16 dengan ekstensi PostGIS.
+
+### Langkah
+1. Ambil kode terbaru dari branch yang disepakati, lalu pasang dependensi:
+   ```bash
+   git pull
+   composer install
+   npm install
+   ```
+2. Salin konfigurasi dan buat kunci aplikasi:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   Isi di `.env`:
+   - `APIINDONESIA_KEY` dengan key pribadi Anda dari apiindonesia.id. Jangan di-commit.
+   - `VITE_MAPTILER_API_KEY` untuk peta (opsional).
+   - `EDUINFRA_CA_BUNDLE` jika muncul error `cURL error 60` (lihat tabel di bawah).
+3. Jalankan database:
+   ```bash
+   docker compose up -d
+   ```
+4. Jalankan migrasi dan data awal, dengan urutan ini:
+   ```bash
+   php artisan migrate
+   php artisan db:seed --class=Domain1Seeder
+   php artisan regions:sync-wilayah
+   ```
+   `regions:sync-wilayah` mengambil batas provinsi dan kabupaten/kota dari wilayah-id. Perlu internet dan beberapa menit.
+5. Muat data sekolah (pilih salah satu atau keduanya):
+   ```bash
+   php artisan schools:sync --source=apiindonesia --province=32
+   php artisan schools:sync --source=osm
+   ```
+   Sumber `apiindonesia` memakai kredit pada akun Anda. Sumber `osm` memakan waktu lama, karena mengambil data dari Overpass per provinsi.
+6. Jalankan aplikasi:
+   ```bash
+   npm run build
+   php artisan serve --host=0.0.0.0 --port=8000
+   ```
+   Untuk pengembangan frontend, pakai `npm run dev` di terminal terpisah.
+
+Setelah langkah di atas, jalankan pemeriksaan otomatis. Perintah ini tidak mengubah data:
+```bash
+php artisan setup:check
+```
+Semua baris berstatus OK berarti komputer siap dipakai. Baris GAGAL harus diperbaiki, sedangkan PERINGATAN boleh dilewati sementara.
+
+### Masalah umum
+
+| Gejala | Penyebab | Solusi |
+|---|---|---|
+| `could not find driver` | Ekstensi `pdo_pgsql` belum aktif | Aktifkan `extension=pdo_pgsql` di `php.ini`, lalu restart terminal |
+| `cURL error 60: unable to get local issuer certificate` | PHP tidak punya sertifikat root (umum di Windows) | Isi `EDUINFRA_CA_BUNDLE` dengan path `ca-bundle.crt` (misalnya dari Git for Windows) |
+| `type "geography" does not exist` | Database tanpa PostGIS | Pakai image `postgis` dari `docker-compose.yml`, bukan PostgreSQL biasa |
+| `APIINDONESIA_KEY` belum diisi | Key belum ditambahkan | Isi di `.env`, lalu `php artisan config:clear` |
+| Halaman tidak ada gaya atau JavaScript | Aset belum dibangun | Jalankan `npm run build` atau `npm run dev` |
+| Halaman laporan lambat setelah impor | Dropdown sekolah dibatasi 1.000 baris | Ini disengaja. Pencarian sekolah di formulir perlu dibuat terpisah |
+| Data hilang setelah menjalankan test | Test Feature/Unit memakai `RefreshDatabase` dan menghapus tabel | Jangan jalankan `phpunit` terhadap database dev. Siapkan database test terpisah dulu |
+
+### Catatan data
+- Database di setiap komputer terpisah. Data di satu komputer tidak otomatis ada di komputer lain.
+- Untuk melihat data yang sama dengan server tim, buka aplikasi lewat alamat server (misalnya `http://192.168.1.68:8000`) selama server itu berjalan.
+- Data OSM berlisensi ODbL (wajib atribusi). Data API Indonesia mengikuti syarat penggunaan penyedianya. Periksa sebelum membagikan salinan database ke luar tim.

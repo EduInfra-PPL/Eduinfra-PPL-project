@@ -13,14 +13,24 @@ class Region extends Model
 {
     protected $table = 'regions';
 
-    protected $fillable = ['code', 'name', 'level', 'is_3t_tier'];
+    /** is_3t (kolom turunan) tidak ikut fillable: dihitung oleh database. */
+    protected $fillable = ['code', 'name', 'level', 'is_3t_tier', 'is_tertinggal', 'is_terdepan', 'is_terluar'];
 
     protected $hidden = ['boundary_polygon'];
 
-    protected $casts = ['is_3t_tier' => 'integer'];
+    protected $casts = [
+        'is_3t_tier' => 'integer',
+        'is_3t' => 'boolean',
+        'is_tertinggal' => 'boolean',
+        'is_terdepan' => 'boolean',
+        'is_terluar' => 'boolean',
+    ];
 
     /** Kolom non-geometri; pakai ->select(Region::COLUMNS) agar polygon tidak ikut terambil. */
-    public const COLUMNS = ['id', 'code', 'name', 'level', 'is_3t_tier', 'created_at', 'updated_at'];
+    public const COLUMNS = [
+        'id', 'code', 'name', 'level', 'is_3t_tier', 'is_3t',
+        'is_tertinggal', 'is_terdepan', 'is_terluar', 'created_at', 'updated_at',
+    ];
 
     public function schools(): HasMany
     {

@@ -10,20 +10,21 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        User::query()->firstOrCreate(
+        User::firstOrCreate(
             ['email' => 'test@example.com'],
             [
-                'name' => 'Test User',
-                'password' => 'password',
-                'email_verified_at' => now(),
-            ],
+                'name' => 'Ir. Hendra',
+                'password' => bcrypt('password'),
+            ]
         );
 
-        $this->call(UserSeeder::class);
+        $this->call([
+            Domain1Seeder::class,
+            DamageReportSeeder::class,
+            RenovationProjectSeeder::class,
+            UserSeeder::class,
+        ]);
     }
 }

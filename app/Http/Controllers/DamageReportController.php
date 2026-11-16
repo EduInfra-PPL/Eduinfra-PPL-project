@@ -64,7 +64,14 @@ class DamageReportController extends Controller
      */
     public function create(): View
     {
-        $schools = School::active()->with('region')->orderBy('name')->get();
+        // Dropdown dibatasi agar halaman tidak kehabisan memori. Data sekolah kini puluhan ribu baris;
+        // pencarian sekolah di formulir perlu dibuat terpisah (lihat catatan serah terima).
+        $schools = School::active()
+            ->select(['id', 'npsn', 'name', 'region_id', 'educational_level', 'address'])
+            ->with(['region:id,name,code,is_3t_tier'])
+            ->orderBy('name')
+            ->limit(1000)
+            ->get();
         $categories = FacilityCategory::where('is_enabled', true)->orderBy('urgency_weight', 'desc')->get();
 
         return view('reports.create', compact('schools', 'categories'));

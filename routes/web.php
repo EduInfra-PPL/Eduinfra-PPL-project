@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\AidCampaignController;
 use App\Http\Controllers\Auth\RegistrationApprovalController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\UserDirectoryController;
 use App\Http\Controllers\DamageReportController;
+use App\Http\Controllers\Renovasi\RenovasiController;
 use App\Http\Middleware\EnsureAdminDinas;
 use Illuminate\Support\Facades\Route;
 
@@ -22,12 +24,31 @@ Route::prefix('reports')->name('reports.')->group(function () {
     Route::post('/', [DamageReportController::class, 'store'])->name('store');
 });
 
+// Domain 3: Manajemen Renovasi, RAB & Rekanan Vendor (Fakhira - PBI-07 & PBI-09)
+Route::prefix('renovasi')->name('renovasi.')->group(function () {
+    Route::get('/', [RenovasiController::class, 'index'])->name('index');
+    Route::post('/', [RenovasiController::class, 'store'])->name('store');
+
+    Route::get('/rab', [RenovasiController::class, 'rab'])->name('rab');
+    Route::get('/milestone', [RenovasiController::class, 'milestones'])->name('milestones');
+    Route::post('/milestone/{id}', [RenovasiController::class, 'updateMilestone'])->name('milestones.update');
+
+    Route::get('/vendors', [RenovasiController::class, 'vendors'])->name('vendors');
+
+    Route::get('/{id}', [RenovasiController::class, 'showProject'])->name('projects.show');
+    Route::delete('/{id}', [RenovasiController::class, 'destroy'])->name('projects.destroy');
+    Route::get('/{id}/rab', [RenovasiController::class, 'showProjectRab'])->name('projects.rab');
+});
+
 // Domain 4: Pendanaan Bantuan, CSR & Pencairan Anggaran
 Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
-    Route::get('/', function () {
-        return view('pendanaan.index');
-    })->name('index');
+    Route::get('/', [AidCampaignController::class, 'index'])->name('index');
+    Route::post('/', [AidCampaignController::class, 'store'])->name('store');
+    Route::view('/wall-of-donors', 'pendanaan.wall-of-donors')->name('wall-of-donors');
 });
+
+// Domain 1: Profil sekolah (PBI-01)
+require __DIR__.'/schools.php';
 
 // Domain 5: Registrasi akun pengguna (PBI-13)
 Route::middleware('guest')->group(function () {
