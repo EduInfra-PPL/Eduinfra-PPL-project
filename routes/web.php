@@ -55,7 +55,7 @@ Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
 // Domain 1: Profil sekolah (PBI-01)
 require __DIR__.'/schools.php';
 
-// Domain 5: Registrasi akun pengguna (PBI-13)
+// Domain 5: Registrasi akun pengguna, Approval, & Matriks RBAC (PBI-13 & PBI-14)
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegistrationController::class, 'create'])->name('register');
     Route::post('/register', [RegistrationController::class, 'store'])
@@ -73,7 +73,12 @@ Route::middleware(['auth', EnsureAdminDinas::class])
         Route::post('/{user}/reject', [RegistrationApprovalController::class, 'reject'])->name('reject');
     });
 
-// Daftar pengguna & aktivitas login (khusus Admin Dinas)
+// Tata Kelola Pengguna & Matriks RBAC (khusus Admin Dinas - PBI-14)
 Route::middleware(['auth', EnsureAdminDinas::class])
-    ->get('/admin/users', [UserDirectoryController::class, 'index'])
-    ->name('admin.users.index');
+    ->prefix('admin/users')
+    ->name('admin.users.')
+    ->group(function () {
+        Route::get('/', [UserDirectoryController::class, 'index'])->name('index');
+        Route::get('/export-audit-log', [UserDirectoryController::class, 'exportAuditLog'])->name('export');
+        Route::patch('/{user}/role', [UserDirectoryController::class, 'updateRole'])->name('update-role');
+    });

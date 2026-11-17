@@ -1,9 +1,26 @@
 @props([
     'active' => 'dashboard',
-    'userName' => 'Ir. Hendra',
-    'userRole' => 'Auditor Utama Kemendikbud',
-    'userInitials' => 'IH'
+    'userName' => null,
+    'userRole' => null,
+    'userInitials' => null
 ])
+
+@php
+    $currentUser = auth()->user();
+    if ($currentUser) {
+        $resolvedName = $userName ?? $currentUser->name;
+        $resolvedRole = $userRole ?? (\App\Enums\UserRole::tryFrom($currentUser->role_enum)?->label() ?? ($currentUser->role_enum ? ucfirst(str_replace('_', ' ', $currentUser->role_enum)) : 'Pengguna'));
+        $resolvedInitials = $userInitials ?? collect(explode(' ', $currentUser->name))->filter()->map(fn($part) => mb_substr($part, 0, 1))->take(2)->join('');
+        $resolvedStatus = $currentUser->is_verified ? 'Aktif' : 'Menunggu';
+        $resolvedStatusClass = $currentUser->is_verified ? 'text-[#059669] bg-[#DCFCE7]' : 'text-amber-700 bg-amber-100';
+    } else {
+        $resolvedName = $userName ?? 'Tamu';
+        $resolvedRole = $userRole ?? 'Belum Masuk';
+        $resolvedInitials = $userInitials ?? '?';
+        $resolvedStatus = 'Tamu';
+        $resolvedStatusClass = 'text-slate-600 bg-slate-200';
+    }
+@endphp
 
 <header class="w-full pt-4 lg:pt-6 pb-4 px-4 lg:px-6 antialiased font-sans">
     <div class="max-w-[1520px] mx-auto bg-white rounded-2xl lg:rounded-3xl p-4 lg:p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
@@ -107,20 +124,20 @@
                             <!-- Avatar with Online Status Indicator -->
                             <div class="relative">
                                 <div class="w-7 h-7 rounded-full bg-[#14171F] text-white flex items-center justify-center text-xs font-bold">
-                                    {{ $userInitials }}
+                                    {{ $resolvedInitials }}
                                 </div>
-                                <span class="absolute bottom-0 right-0 w-2 h-2 bg-[#10B981] rounded-full border border-white"></span>
+                                <span class="absolute bottom-0 right-0 w-2 h-2 {{ $currentUser && $currentUser->is_verified ? 'bg-[#10B981]' : 'bg-slate-300' }} rounded-full border border-white"></span>
                             </div>
 
                             <!-- Name & Role -->
                             <div class="text-left">
-                                <div class="text-xs font-bold text-slate-900 leading-tight">{{ $userName }}</div>
-                                <div class="text-[10px] text-slate-500 font-medium leading-none">{{ $userRole }}</div>
+                                <div class="text-xs font-bold text-slate-900 leading-tight max-w-[130px] truncate">{{ $resolvedName }}</div>
+                                <div class="text-[10px] text-slate-500 font-medium leading-none max-w-[130px] truncate">{{ $resolvedRole }}</div>
                             </div>
 
                             <!-- Status Badge -->
-                            <span class="px-2 py-0.5 text-[10px] font-semibold text-[#059669] bg-[#DCFCE7] rounded-full">
-                                Aktif
+                            <span class="px-2 py-0.5 text-[10px] font-semibold {{ $resolvedStatusClass }} rounded-full">
+                                {{ $resolvedStatus }}
                             </span>
 
                             <!-- Dropdown Icon -->
@@ -144,8 +161,8 @@
                                     Profil Sekolah
                                 </a>
                                 <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
-                                    <x-ui.icon name="user" class="w-4 h-4" />
-                                    Daftar Pengguna
+                                    <x-ui.icon name="shield-check" class="w-4 h-4 text-[#FF5C2A]" />
+                                    Tata Kelola Akun &amp; RBAC
                                 </a>
                                 <a href="{{ route('admin.registrations.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
                                     <x-ui.icon name="identification" class="w-4 h-4" />
