@@ -26,7 +26,8 @@ class UserDirectoryTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.users.index'))
             ->assertOk()
-            ->assertSee($other->email);
+            ->assertSee($other->email)
+            ->assertSee('Matriks RBAC');
     }
 
     public function test_login_event_records_activity(): void
@@ -39,5 +40,31 @@ class UserDirectoryTest extends TestCase
         $user->refresh();
         $this->assertSame(2, (int) $user->login_count);
         $this->assertNotNull($user->last_login_at);
+    }
+
+    public function test_admin_can_update_user_rbac_role(): void
+    {
+        $admin = User::factory()->create(['role_enum' => 'admin_dinas', 'is_verified' => true]);
+        $targetUser = User::factory()->create(['role_enum' => 'pelapor_guru', 'is_verified' => true]);
+
+        $response = $this->actingAs($admin)
+            ->patch(route('admin.users.update-role', $targetUser), [
+                'role_enum' => 'auditor_relawan',
+            ]);
+
+        $response->assertRedirect();
+        $targetUser->refresh();
+        $this->assertSame('auditor_relawan', $targetUser->role_enum);
+    }
+
+    public function test_admin_can_export_security_audit_log_csv(): void
+    {
+        $admin = User::factory()->create(['role_enum' => 'admin_dinas', 'is_verified' => true]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.users.export'));
+
+        $response->assertOk();
+        $this->assertTrue(str_contains((string) $response->headers->get('content-type'), 'text/csv'));
     }
 }
