@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Adapter Service untuk menjembatani Domain 4 (aid_campaigns) dengan Domain 3 & Domain 2.
@@ -167,13 +168,22 @@ class VerifiedProjectLookupService
             $selects[] = 'al.physical_score';
         }
 
+        $mediaColumn = null;
         if ($hasReportMedia) {
+            if (Schema::hasColumn('report_media', 'media_path')) {
+                $mediaColumn = 'media_path';
+            } elseif (Schema::hasColumn('report_media', 'media_url')) {
+                $mediaColumn = 'media_url';
+            }
+        }
+
+        if ($mediaColumn !== null) {
             $mediaSubquery = DB::table('report_media')
-                ->selectRaw('report_id, MIN(media_url) as media_url')
+                ->selectRaw("report_id, MIN({$mediaColumn}) as media_raw")
                 ->groupBy('report_id');
 
             $query->leftJoinSub($mediaSubquery, 'rm', fn ($join) => $join->on('rm.report_id', '=', 'dr.id'));
-            $selects[] = 'rm.media_url';
+            $selects[] = 'rm.media_raw';
         }
 
         $rows = $query->select($selects)->orderByDesc('rp.id')->get();
@@ -220,9 +230,29 @@ class VerifiedProjectLookupService
                 'badge_label' => $severityLevel >= 5 ? 'Rusak Total' : ($row->sub_category_name ?: $row->category_name),
                 'default_title' => (string) $row->report_title,
                 'description' => (string) $row->report_description,
-                'image_url' => ($row->media_url ?? null) ?: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80',
+                'image_url' => self::resolveImageUrl($row->media_raw ?? ($row->media_url ?? null)),
             ];
         });
+    }
+
+    /**
+     * Resolusi URL foto laporan dari path lokal storage disk public atau URL langsung.
+     */
+    protected static function resolveImageUrl(?string $rawMedia): string
+    {
+        if (empty($rawMedia)) {
+            return 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80';
+        }
+
+        if (str_starts_with($rawMedia, 'http://') || str_starts_with($rawMedia, 'https://')) {
+            return $rawMedia;
+        }
+
+        try {
+            return Storage::disk('public')->url($rawMedia);
+        } catch (\Throwable) {
+            return asset('storage/' . ltrim($rawMedia, '/'));
+        }
     }
 
     /**
