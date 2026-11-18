@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AidCampaignController;
+use App\Http\Controllers\AidContributionController;
 use App\Http\Controllers\Auth\RegistrationApprovalController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\UserDirectoryController;
@@ -8,52 +9,66 @@ use App\Http\Controllers\DamageReportController;
 use App\Http\Controllers\Renovasi\RenovasiController;
 use App\Http\Controllers\ReportMediaController;
 use App\Http\Middleware\EnsureAdminDinas;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('dashboard');
-})->name('home');
+// Gerbang Awal: Halaman Loading Pemeriksaan Sesi (mengarahkan ke Login atau Dashboard)
+Route::view('/', 'auth.session-check')->name('home');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
+// Endpoint pembersihan sesi ketika tab/URL ditutup atau dibuka di tab baru
+Route::post('/session/expire-tab', function (Request $request) {
+    Auth::guard('web')->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
-// Domain 2: Pelaporan & Verifikasi (PBI-04 & PBI-05)
-Route::prefix('reports')->name('reports.')->group(function () {
-    Route::get('/', [DamageReportController::class, 'index'])->name('index');
-    Route::get('/create', [DamageReportController::class, 'create'])->name('create');
-    Route::post('/', [DamageReportController::class, 'store'])->name('store');
+    return response()->json(['expired' => true]);
+})->name('session.expire-tab');
 
-    // PBI-05: Unggahan Media & Validasi EXIF GPS
-    Route::post('/{report}/media', [ReportMediaController::class, 'store'])->name('media.store');
-    Route::delete('/media/{media}', [ReportMediaController::class, 'destroy'])->name('media.destroy');
+// Seluruh halaman aplikasi inti wajib login (middleware auth)
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    // Domain 2: Pelaporan & Verifikasi (PBI-04 & PBI-05)
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [DamageReportController::class, 'index'])->name('index');
+        Route::get('/create', [DamageReportController::class, 'create'])->name('create');
+        Route::post('/', [DamageReportController::class, 'store'])->name('store');
+
+        // PBI-05: Unggahan Media & Validasi EXIF GPS
+        Route::post('/{report}/media', [ReportMediaController::class, 'store'])->name('media.store');
+        Route::delete('/media/{media}', [ReportMediaController::class, 'destroy'])->name('media.destroy');
+    });
+
+    // Domain 3: Manajemen Renovasi, RAB & Rekanan Vendor (Fakhira - PBI-07 & PBI-09)
+    Route::prefix('renovasi')->name('renovasi.')->group(function () {
+        Route::get('/', [RenovasiController::class, 'index'])->name('index');
+        Route::post('/', [RenovasiController::class, 'store'])->name('store');
+
+        Route::get('/rab', [RenovasiController::class, 'rab'])->name('rab');
+        Route::get('/milestone', [RenovasiController::class, 'milestones'])->name('milestones');
+        Route::post('/milestone/{id}', [RenovasiController::class, 'updateMilestone'])->name('milestones.update');
+
+        Route::get('/vendors', [RenovasiController::class, 'vendors'])->name('vendors');
+
+        Route::get('/{id}', [RenovasiController::class, 'showProject'])->name('projects.show');
+        Route::delete('/{id}', [RenovasiController::class, 'destroy'])->name('projects.destroy');
+        Route::get('/{id}/rab', [RenovasiController::class, 'showProjectRab'])->name('projects.rab');
+    });
+
+    // Domain 4: Pendanaan Bantuan, CSR & Pencairan Anggaran
+    Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
+        Route::get('/', [AidCampaignController::class, 'index'])->name('index');
+        Route::post('/', [AidCampaignController::class, 'store'])->name('store');
+        Route::get('/wall-of-donors', [AidContributionController::class, 'wallOfDonors'])->name('wall-of-donors');
+        Route::post('/kontribusi', [AidContributionController::class, 'store'])->name('contributions.store');
+    });
+
+    // Domain 1: Profil sekolah (PBI-01)
+    require __DIR__.'/schools.php';
 });
-
-// Domain 3: Manajemen Renovasi, RAB & Rekanan Vendor (Fakhira - PBI-07 & PBI-09)
-Route::prefix('renovasi')->name('renovasi.')->group(function () {
-    Route::get('/', [RenovasiController::class, 'index'])->name('index');
-    Route::post('/', [RenovasiController::class, 'store'])->name('store');
-
-    Route::get('/rab', [RenovasiController::class, 'rab'])->name('rab');
-    Route::get('/milestone', [RenovasiController::class, 'milestones'])->name('milestones');
-    Route::post('/milestone/{id}', [RenovasiController::class, 'updateMilestone'])->name('milestones.update');
-
-    Route::get('/vendors', [RenovasiController::class, 'vendors'])->name('vendors');
-
-    Route::get('/{id}', [RenovasiController::class, 'showProject'])->name('projects.show');
-    Route::delete('/{id}', [RenovasiController::class, 'destroy'])->name('projects.destroy');
-    Route::get('/{id}/rab', [RenovasiController::class, 'showProjectRab'])->name('projects.rab');
-});
-
-// Domain 4: Pendanaan Bantuan, CSR & Pencairan Anggaran
-Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
-    Route::get('/', [AidCampaignController::class, 'index'])->name('index');
-    Route::post('/', [AidCampaignController::class, 'store'])->name('store');
-    Route::view('/wall-of-donors', 'pendanaan.wall-of-donors')->name('wall-of-donors');
-});
-
-// Domain 1: Profil sekolah (PBI-01)
-require __DIR__.'/schools.php';
 
 // Domain 5: Registrasi akun pengguna, Approval, & Matriks RBAC (PBI-13 & PBI-14)
 Route::middleware('guest')->group(function () {

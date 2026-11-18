@@ -9,53 +9,7 @@
                 this.selectedDonor = donor;
                 this.donorDetailOpen = true;
             },
-            disbursements: [
-                {
-                    code: 'TRX-CSR-041',
-                    date: '12 Okt 2026',
-                    school: 'SDN Waisika',
-                    location: 'Kab. Alor, NTT',
-                    donor: 'PT Telkom Indonesia',
-                    unit: 'CSR Divre VII',
-                    amount: 150000000,
-                    amount_formatted: 'Rp 150.000.000',
-                    stage: 'Termin 1 (Pondasi)',
-                    term_key: 'termin1',
-                    verification_type: 'drone',
-                    verification_label: 'Drone Terverifikasi',
-                    bap_file: 'BAP_Termin1.pdf'
-                },
-                {
-                    code: 'TRX-CSR-039',
-                    date: '09 Okt 2026',
-                    school: 'SMP Satap Asmat',
-                    location: 'Kab. Asmat, Papua',
-                    donor: 'PT Astra International',
-                    unit: 'Yayasan Pendidikan Astra',
-                    amount: 180000000,
-                    amount_formatted: 'Rp 180.000.000',
-                    stage: 'Termin 2 (Struktur)',
-                    term_key: 'termin2',
-                    verification_type: 'tide',
-                    verification_label: 'Pasang-Surut Selesai',
-                    bap_file: 'BAP_Termin2.pdf'
-                },
-                {
-                    code: 'TRX-CSR-035',
-                    date: '03 Okt 2026',
-                    school: 'SDN 02 Sambas',
-                    location: 'Kab. Sambas, Kalbar',
-                    donor: 'PT BRI (Persero) Tbk',
-                    unit: 'BRI Peduli 3T',
-                    amount: 255000000,
-                    amount_formatted: 'Rp 255.000.000',
-                    stage: 'Termin 3 Final',
-                    term_key: 'termin3',
-                    verification_type: 'full',
-                    verification_label: '100% Serah Terima',
-                    bap_file: 'BAP_Final.pdf'
-                }
-            ],
+            disbursements: @js($disbursements ?? []),
             get filteredDisbursements() {
                 if (this.activeTab === 'all') return this.disbursements;
                 return this.disbursements.filter(d => d.term_key === this.activeTab);
@@ -149,7 +103,7 @@
                     Total Dana CSR Terserap
                 </p>
                 <h3 class="text-2xl sm:text-3xl font-extrabold text-[#14171F]">
-                    Rp 18,42 M
+                    {{ $stats['total_absorbed_formatted'] ?? 'Rp 0' }}
                 </h3>
                 <div class="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -165,10 +119,10 @@
                     Sekolah 3T Terehabilitasi
                 </p>
                 <h3 class="text-2xl sm:text-3xl font-extrabold text-[#14171F]">
-                    64 Sekolah
+                    {{ $stats['schools_count'] ?? 0 }} Sekolah
                 </h3>
                 <p class="text-xs font-medium text-slate-500">
-                    14.820 Siswa Terfasilitasi
+                    {{ $stats['students_impacted'] ?? '0' }} Siswa Terfasilitasi
                 </p>
             </div>
 
@@ -178,13 +132,13 @@
                     Total Dana Escrow Aktif
                 </p>
                 <h3 class="text-2xl sm:text-3xl font-extrabold text-[#14171F]">
-                    Rp 4,75 M
+                    {{ $stats['active_escrow_formatted'] ?? 'Rp 0' }}
                 </h3>
                 <div class="flex items-center gap-1.5 text-xs font-medium text-amber-600">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
-                    <span>22 Proyek Konstruksi</span>
+                    <span>{{ $stats['active_projects_count'] ?? 0 }} Proyek Aktif</span>
                 </div>
             </div>
 
@@ -194,7 +148,7 @@
                     Mitra Korporasi Aktif
                 </p>
                 <h3 class="text-2xl sm:text-3xl font-extrabold text-[#14171F]">
-                    42 Mitra
+                    {{ $stats['active_donors_count'] ?? 0 }} Mitra
                 </h3>
                 <div class="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -225,289 +179,71 @@
                 </div>
             </div>
 
-            <!-- Grid 6 Contributors Cards -->
+            <!-- Grid Contributors Cards (Dinamis dari Database) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- 1. PT Telkom Indonesia -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-xl bg-[#FFF1EB] text-[#FF5C2A] font-extrabold text-sm flex items-center justify-center shrink-0">
-                                TL
+                @forelse ($topContributors ?? [] as $donor)
+                    @php
+                        $tierClass = match ($donor['tier'] ?? 'Silver') {
+                            'Platinum' => 'bg-slate-100 text-slate-700',
+                            'Gold' => 'bg-amber-100 text-amber-800',
+                            default => 'bg-slate-200 text-slate-800',
+                        };
+                        $avatarClass = match ($donor['tier'] ?? 'Silver') {
+                            'Platinum' => 'bg-[#FFF1EB] text-[#FF5C2A]',
+                            'Gold' => 'bg-amber-50 text-amber-600',
+                            default => 'bg-slate-100 text-slate-700',
+                        };
+                    @endphp
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-xl {{ $avatarClass }} font-extrabold text-sm flex items-center justify-center shrink-0">
+                                    {{ $donor['initials'] }}
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-sm sm:text-base text-slate-900 line-clamp-1">
+                                        {{ $donor['name'] }}
+                                    </h4>
+                                    <p class="text-xs text-slate-500">{{ $donor['sector'] }}</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 {{ $tierClass }} text-[10px] font-bold rounded-lg uppercase tracking-wider">
+                                {{ $donor['tier'] }}
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50/80 rounded-xl">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Alokasi</p>
+                                <p class="text-sm font-extrabold text-slate-900">{{ $donor['allocation_short'] }}</p>
                             </div>
                             <div>
-                                <h4 class="font-extrabold text-sm sm:text-base text-slate-900 line-clamp-1">
-                                    PT Telkom Indonesia Tbk
-                                </h4>
-                                <p class="text-xs text-slate-500">BUMN Telekomunikasi</p>
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Rehabilitasi</p>
+                                <p class="text-sm font-extrabold text-[#FF5C2A]">{{ $donor['schools'] }} Sekolah 3T</p>
                             </div>
                         </div>
-                        <span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                            Platinum
-                        </span>
-                    </div>
 
-                    <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50/80 rounded-xl">
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Alokasi</p>
-                            <p class="text-sm font-extrabold text-slate-900">Rp 3,2 Miliar</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Rehabilitasi</p>
-                            <p class="text-sm font-extrabold text-[#FF5C2A]">8 Sekolah 3T</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                        <div class="flex items-center gap-1.5 text-emerald-600 font-medium">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Tax Deduction Siap</span>
-                        </div>
-                        <button 
-                            type="button" 
-                            @click="openDonorDetail({ name: 'PT Telkom Indonesia Tbk', sector: 'BUMN Telekomunikasi', tier: 'Platinum', allocation: 'Rp 3.200.000.000', schools: 8, pmk_status: 'Terbit BAP Kemendikbud' })" 
-                            class="font-bold text-[#FF5C2A] hover:underline cursor-pointer"
-                        >
-                            Detail &rsaquo;
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 2. PT Bank Rakyat Indonesia -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 font-extrabold text-sm flex items-center justify-center shrink-0">
-                                BR
+                        <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                            <div class="flex items-center gap-1.5 text-emerald-600 font-medium">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <span>Tax Deduction Siap</span>
                             </div>
-                            <div>
-                                <h4 class="font-extrabold text-sm sm:text-base text-slate-900 line-clamp-1">
-                                    PT Bank Rakyat Indonesia Tbk
-                                </h4>
-                                <p class="text-xs text-slate-500">BUMN Perbankan</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                            Platinum
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50/80 rounded-xl">
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Alokasi</p>
-                            <p class="text-sm font-extrabold text-slate-900">Rp 2,8 Miliar</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Rehabilitasi</p>
-                            <p class="text-sm font-extrabold text-[#FF5C2A]">7 Sekolah 3T</p>
+                            <button 
+                                type="button" 
+                                @click='openDonorDetail(@js(['name' => $donor['name'], 'sector' => $donor['sector'], 'tier' => $donor['tier'], 'allocation' => $donor['allocation_full'], 'schools' => $donor['schools'], 'pmk_status' => $donor['pmk_status']]))'
+                                class="font-bold text-[#FF5C2A] hover:underline cursor-pointer"
+                            >
+                                Detail &rsaquo;
+                            </button>
                         </div>
                     </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                        <div class="flex items-center gap-1.5 text-emerald-600 font-medium">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Tax Deduction Siap</span>
-                        </div>
-                        <button 
-                            type="button" 
-                            @click="openDonorDetail({ name: 'PT Bank Rakyat Indonesia Tbk', sector: 'BUMN Perbankan', tier: 'Platinum', allocation: 'Rp 2.800.000.000', schools: 7, pmk_status: 'Terbit BAP Kemendikbud' })" 
-                            class="font-bold text-[#FF5C2A] hover:underline cursor-pointer"
-                        >
-                            Detail &rsaquo;
-                        </button>
+                @empty
+                    <div class="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center text-xs text-slate-500">
+                        Belum ada riwayat kontribusi donatur yang tercatat. Silakan salurkan komitmen CSR melalui halaman Katalog Kampanye.
                     </div>
-                </div>
-
-                <!-- 3. PT Astra International -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 font-extrabold text-sm flex items-center justify-center shrink-0">
-                                AS
-                            </div>
-                            <div>
-                                <h4 class="font-extrabold text-sm sm:text-base text-slate-900 line-clamp-1">
-                                    PT Astra International Tbk
-                                </h4>
-                                <p class="text-xs text-slate-500">Konglomerasi Industri</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                            Gold
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50/80 rounded-xl">
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Alokasi</p>
-                            <p class="text-sm font-extrabold text-slate-900">Rp 2,1 Miliar</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Rehabilitasi</p>
-                            <p class="text-sm font-extrabold text-[#FF5C2A]">5 Sekolah 3T</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                        <div class="flex items-center gap-1.5 text-emerald-600 font-medium">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Tax Deduction Siap</span>
-                        </div>
-                        <button 
-                            type="button" 
-                            @click="openDonorDetail({ name: 'PT Astra International Tbk', sector: 'Konglomerasi Industri', tier: 'Gold', allocation: 'Rp 2.100.000.000', schools: 5, pmk_status: 'Terbit BAP Kemendikbud' })" 
-                            class="font-bold text-[#FF5C2A] hover:underline cursor-pointer"
-                        >
-                            Detail &rsaquo;
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 4. PT Indofood CBP Sukses Makmur -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 font-extrabold text-sm flex items-center justify-center shrink-0">
-                                IC
-                            </div>
-                            <div>
-                                <h4 class="font-extrabold text-sm sm:text-base text-slate-900 line-clamp-1">
-                                    PT Indofood CBP Tbk
-                                </h4>
-                                <p class="text-xs text-slate-500">FMCG &amp; Pangan</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                            Gold
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50/80 rounded-xl">
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Alokasi</p>
-                            <p class="text-sm font-extrabold text-slate-900">Rp 1,5 Miliar</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Rehabilitasi</p>
-                            <p class="text-sm font-extrabold text-[#FF5C2A]">4 Sekolah 3T</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                        <div class="flex items-center gap-1.5 text-emerald-600 font-medium">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Tax Deduction Siap</span>
-                        </div>
-                        <button 
-                            type="button" 
-                            @click="openDonorDetail({ name: 'PT Indofood CBP Tbk', sector: 'FMCG & Pangan', tier: 'Gold', allocation: 'Rp 1.500.000.000', schools: 4, pmk_status: 'Terbit BAP Kemendikbud' })" 
-                            class="font-bold text-[#FF5C2A] hover:underline cursor-pointer"
-                        >
-                            Detail &rsaquo;
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 5. Yayasan Bakti BCA -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 font-extrabold text-sm flex items-center justify-center shrink-0">
-                                BC
-                            </div>
-                            <div>
-                                <h4 class="font-extrabold text-sm sm:text-base text-slate-900 line-clamp-1">
-                                    Yayasan Bakti BCA
-                                </h4>
-                                <p class="text-xs text-slate-500">Filantropi Swasta</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 bg-slate-200 text-slate-800 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                            Silver
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50/80 rounded-xl">
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Alokasi</p>
-                            <p class="text-sm font-extrabold text-slate-900">Rp 1,2 Miliar</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Rehabilitasi</p>
-                            <p class="text-sm font-extrabold text-[#FF5C2A]">3 Sekolah 3T</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                        <div class="flex items-center gap-1.5 text-emerald-600 font-medium">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Tax Deduction Siap</span>
-                        </div>
-                        <button 
-                            type="button" 
-                            @click="openDonorDetail({ name: 'Yayasan Bakti BCA', sector: 'Filantropi Swasta', tier: 'Silver', allocation: 'Rp 1.200.000.000', schools: 3, pmk_status: 'Terbit BAP Kemendikbud' })" 
-                            class="font-bold text-[#FF5C2A] hover:underline cursor-pointer"
-                        >
-                            Detail &rsaquo;
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 6. MIND ID -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 font-extrabold text-sm flex items-center justify-center shrink-0">
-                                MI
-                            </div>
-                            <div>
-                                <h4 class="font-extrabold text-sm sm:text-base text-slate-900 line-clamp-1">
-                                    MIND ID
-                                </h4>
-                                <p class="text-xs text-slate-500">Holding BUMN Pertambangan</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 bg-slate-200 text-slate-800 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                            Silver
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50/80 rounded-xl">
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Alokasi</p>
-                            <p class="text-sm font-extrabold text-slate-900">Rp 1,1 Miliar</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Rehabilitasi</p>
-                            <p class="text-sm font-extrabold text-[#FF5C2A]">3 Sekolah 3T</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                        <div class="flex items-center gap-1.5 text-emerald-600 font-medium">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Tax Deduction Siap</span>
-                        </div>
-                        <button 
-                            type="button" 
-                            @click="openDonorDetail({ name: 'MIND ID', sector: 'Holding BUMN Pertambangan', tier: 'Silver', allocation: 'Rp 1.100.000.000', schools: 3, pmk_status: 'Terbit BAP Kemendikbud' })" 
-                            class="font-bold text-[#FF5C2A] hover:underline cursor-pointer"
-                        >
-                            Detail &rsaquo;
-                        </button>
-                    </div>
-                </div>
+                @endforelse
             </div>
         </div>
 

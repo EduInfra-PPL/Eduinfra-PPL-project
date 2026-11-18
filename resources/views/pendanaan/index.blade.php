@@ -10,7 +10,7 @@
 
     <div 
         x-data="{
-            createModalOpen: {{ $errors->any() ? 'true' : 'false' }},
+            createModalOpen: {{ $errors->hasAny(['project_id', 'title', 'deadline']) ? 'true' : 'false' }},
             projectDropdownOpen: false,
             projects: @js($availableProjects->values()),
             selectedProjectId: {{ $defaultProject ? (int) $defaultProject['id'] : 'null' }},
@@ -873,7 +873,10 @@
                         </template>
 
                         <!-- Form Input -->
-                        <form @submit.prevent="submitContributionMock" class="space-y-4">
+                        <form action="{{ route('pendanaan.contributions.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="campaign_id" :value="selectedCampaign?.id">
+
                             <!-- 1. Profil Mitra CSR / Donatur -->
                             <div class="space-y-1.5">
                                 <label class="block text-xs font-bold text-slate-700">
@@ -881,6 +884,7 @@
                                 </label>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <select 
+                                        name="donor_name"
                                         x-model="donorName" 
                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5C2A]/20 focus:border-[#FF5C2A]"
                                     >
@@ -894,6 +898,7 @@
                                     </select>
                                     <input 
                                         type="text" 
+                                        name="donor_unit"
                                         x-model="donorUnit" 
                                         placeholder="Divisi / Unit (contoh: CSR & TJSL Divre VII)"
                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5C2A]/20 focus:border-[#FF5C2A]"
@@ -911,7 +916,7 @@
                                         class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all"
                                         :class="contributionType === 'cash' ? 'border-[#FF5C2A] bg-[#FFF8F5] text-[#FF5C2A] font-bold' : 'border-slate-200 bg-white text-slate-600'"
                                     >
-                                        <input type="radio" value="cash" x-model="contributionType" class="hidden">
+                                        <input type="radio" name="contribution_type" value="cash" x-model="contributionType" class="hidden">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                                         </svg>
@@ -922,7 +927,7 @@
                                         class="flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all"
                                         :class="contributionType === 'goods' ? 'border-[#FF5C2A] bg-[#FFF8F5] text-[#FF5C2A] font-bold' : 'border-slate-200 bg-white text-slate-600'"
                                     >
-                                        <input type="radio" value="goods" x-model="contributionType" class="hidden">
+                                        <input type="radio" name="contribution_type" value="goods" x-model="contributionType" class="hidden">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                                         </svg>
@@ -943,9 +948,10 @@
                                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-bold text-slate-400">Rp</span>
                                     <input 
                                         type="number" 
+                                        name="amount_or_goods"
                                         x-model.number="contributionAmount" 
-                                        min="1000000" 
-                                        step="500000"
+                                        min="100000" 
+                                        step="100000"
                                         class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF5C2A]/20 focus:border-[#FF5C2A]"
                                     >
                                 </div>
@@ -991,6 +997,8 @@
                                 <div class="p-4 border-2 border-dashed border-slate-200 rounded-2xl text-center bg-slate-50/60 hover:bg-slate-50 transition-colors cursor-pointer relative">
                                     <input 
                                         type="file" 
+                                        name="payment_proof"
+                                        accept=".pdf,.jpg,.jpeg,.png"
                                         @change="proofFileName = $event.target.files[0] ? $event.target.files[0].name : ''" 
                                         class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                     >
@@ -1010,6 +1018,7 @@
                                     5. Catatan Alokasi / Program CSR (Opsional)
                                 </label>
                                 <textarea 
+                                    name="notes"
                                     x-model="contributionNote" 
                                     rows="2" 
                                     placeholder="Contoh: Program CSR Pilar Pendidikan PT Telkom untuk pembangunan 4 ruang kelas baru."
