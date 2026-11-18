@@ -105,8 +105,9 @@ class DamageReportController extends Controller
 ```
 
 ### C. Pengecualian Tercatat (Re-mapping)
-- Modul **Domain 1** (`SchoolController`, `RegionController`, `FacilityCategoryController`) masih memakai `$request->validate()` dan `DB::transaction()` langsung di controller, serta logic query di dalamnya. Ini **belum** sesuai aturan di atas.
-- Diterima sebagai pengecualian sementara saat integrasi awal. Refactor ke `FormRequest` + `Action` + thin controller dijadwalkan sebagai langkah terpisah.
+- Modul **Domain 1** sudah mengikuti aturan di atas: validasi API di `App\Http\Requests\Api\V1\{Schools,Regions}\*`, query baca di `App\Services\Schools\SchoolQueryService` dan `App\Services\Regions\RegionQueryService`, penulisan di `App\Actions\{Schools,Regions,FacilityCategories}\*`.
+- Route tidak dipecah ke banyak file: route web ada di `routes/web.php`, route API v1 ada di `routes/api.php`.
+- Pengujian memakai database yang sama dengan pengembangan (lihat `phpunit.xml`). Jangan menjalankan tes yang memakai `RefreshDatabase` (termasuk `tests/Unit/ExampleTest.php`) atau satu folder tes sekaligus, karena seluruh data akan terhapus. Jalankan file tes satu per satu yang memakai `DatabaseTransactions`.
 
 ---
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Regions;
+namespace App\Http\Requests\Api\V1\Regions;
 
 use Illuminate\Foundation\Http\FormRequest;
 
