@@ -96,4 +96,5 @@ Route::middleware(['auth', EnsureAdminDinas::class])
         Route::get('/', [UserDirectoryController::class, 'index'])->name('index');
         Route::get('/export-audit-log', [UserDirectoryController::class, 'exportAuditLog'])->name('export');
         Route::patch('/{user}/role', [UserDirectoryController::class, 'updateRole'])->name('update-role');
+        Route::post('/custom-roles', [UserDirectoryController::class, 'storeCustomRole'])->name('custom-roles.store');
     });

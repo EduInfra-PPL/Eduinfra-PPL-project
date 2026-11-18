@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Actions\Auth\ListUsersAction;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Models\CustomRole;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -18,9 +20,25 @@ class UserDirectoryController extends Controller
             ? $request->query('status')
             : 'all';
         $search = $request->query('q');
-        $tab = in_array($request->query('tab'), ['users', 'rbac', 'fraud', 'sessions'], true)
+        $tab = in_array($request->query('tab'), ['users', 'rbac'], true)
             ? $request->query('tab')
             : 'users';
+
+        $customRoles = collect();
+        if (Schema::hasTable('custom_roles')) {
+            $customRoles = CustomRole::query()->orderBy('name')->get()->toBase();
+        }
+
+        $sessionCustomRoles = session('custom_roles', []);
+        if (!empty($sessionCustomRoles)) {
+            $existingCodes = $customRoles->pluck('code')->all();
+            foreach ($sessionCustomRoles as $role) {
+                $code = data_get($role, 'code');
+                if ($code && !in_array($code, $existingCodes, true)) {
+                    $customRoles->push((object) $role);
+                }
+            }
+        }
 
         return view('admin.users.index', [
             'status' => $status,
@@ -29,15 +47,44 @@ class UserDirectoryController extends Controller
             'users' => $list->execute($status, $search),
             'counts' => $list->counts(),
             'roles' => UserRole::cases(),
+            'customRoles' => $customRoles,
         ]);
+    }
+
+    public function storeCustomRole(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'code' => ['required', 'string', 'max:10'],
+            'institution' => ['required', 'string', 'max:150'],
+            'access_level' => ['required', 'string', 'max:100'],
+            'description' => ['required', 'string', 'max:1000'],
+            'permissions' => ['nullable', 'array'],
+        ]);
+
+        $validated['code'] = strtoupper(trim($validated['code']));
+        $validated['created_by'] = auth()->id();
+
+        if (Schema::hasTable('custom_roles')) {
+            CustomRole::updateOrCreate(
+                ['code' => $validated['code']],
+                $validated
+            );
+            session()->forget('custom_roles');
+        } else {
+            $existing = session('custom_roles', []);
+            $existing[$validated['code']] = (object) $validated;
+            session(['custom_roles' => $existing]);
+        }
+
+        return redirect()->route('admin.users.index', ['tab' => 'rbac'])
+            ->with('status', "Peran khusus baru \"{$validated['code']} - {$validated['name']}\" berhasil ditambahkan ke Matriks RBAC.");
     }
 
     public function updateRole(Request $request, User $user)
     {
-        $allowedRoles = array_column(UserRole::cases(), 'value');
-
         $validated = $request->validate([
-            'role_enum' => ['required', 'string', 'in:'.implode(',', $allowedRoles)],
+            'role_enum' => ['required', 'string'],
         ]);
 
         $user->forceFill([
