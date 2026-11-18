@@ -69,7 +69,7 @@
                 @endif
 
                 <form method="POST" action="{{ route('login.store') }}" class="mt-7 space-y-5"
-                      x-data="{ login: @js(old('email', '')), submitting: false }" @submit="submitting = true">
+                      x-data="{ login: @js(old('email', '')), submitting: false }" @submit="sessionStorage.setItem('eduinfra_tab_active', '1'); submitting = true">
                     @csrf
 
                     <x-auth.input-field name="email" label="NIP / Email Kedinasan (18 Digit)"
@@ -96,10 +96,10 @@
                         @endif
                     </x-auth.input-field>
 
-                    <label class="flex items-center gap-2.5 text-xs font-medium text-slate-600 cursor-pointer">
-                        <input type="checkbox" name="remember" value="1" class="w-4 h-4 rounded accent-[#FF5C2A]">
-                        Ingat sesi terpercaya ini (Maks. 8 jam sesuai protokol BSSN)
-                    </label>
+                    <div class="flex items-center gap-2 text-xs font-medium text-slate-500">
+                        <x-ui.icon name="lock" class="w-3.5 h-3.5 text-[#FF5C2A] shrink-0" />
+                        <span>Sesi otomatis berakhir saat tab/browser atau perangkat ditutup.</span>
+                    </div>
 
                     <x-ui.button type="submit" variant="primary" size="lg" class="w-full" ::disabled="submitting">
                         Masuk ke Dashboard EduInfra <x-ui.icon name="arrow-right" class="w-4 h-4" />
