@@ -6,18 +6,39 @@ use App\Models\DamageReport;
 use App\Models\FacilityCategory;
 use App\Models\ReportMedia;
 use App\Models\School;
+use App\Models\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DamageReportTest extends TestCase
 {
+    use DatabaseTransactions;
+
+    private function createAuthenticatedUser(): User
+    {
+        return User::factory()->create();
+    }
+
+    /**
+     * Pastikan tamu (guest) yang belum login diarahkan ke halaman login (middleware auth).
+     */
+    public function test_guest_is_redirected_to_login_from_reports_routes(): void
+    {
+        $this->get(route('reports.index'))->assertRedirect(route('login'));
+        $this->get(route('reports.create'))->assertRedirect(route('login'));
+        $this->post(route('reports.store'), [])->assertRedirect(route('login'));
+    }
+
     /**
      * Uji apakah halaman daftar laporan (/reports) dapat diakses dengan sukses.
      */
     public function test_reports_index_page_can_be_rendered(): void
     {
-        $response = $this->get(route('reports.index'));
+        $user = $this->createAuthenticatedUser();
+
+        $response = $this->actingAs($user)->get(route('reports.index'));
 
         $response->assertOk();
         $response->assertSee('Daftar Laporan Fasilitas Sekolah');
@@ -30,7 +51,9 @@ class DamageReportTest extends TestCase
      */
     public function test_reports_create_page_can_be_rendered(): void
     {
-        $response = $this->get(route('reports.create'));
+        $user = $this->createAuthenticatedUser();
+
+        $response = $this->actingAs($user)->get(route('reports.create'));
 
         $response->assertOk();
         $response->assertSee('Laporan Kerusakan Fasilitas Sekolah');
@@ -44,7 +67,9 @@ class DamageReportTest extends TestCase
      */
     public function test_reports_store_validates_required_fields(): void
     {
-        $response = $this->post(route('reports.store'), []);
+        $user = $this->createAuthenticatedUser();
+
+        $response = $this->actingAs($user)->post(route('reports.store'), []);
 
         $response->assertSessionHasErrors([
             'school_id',
@@ -60,6 +85,7 @@ class DamageReportTest extends TestCase
      */
     public function test_reports_store_creates_record_and_redirects(): void
     {
+        $user = $this->createAuthenticatedUser();
         $school = School::active()->first();
         $category = FacilityCategory::where('is_enabled', true)->first();
 
@@ -71,7 +97,7 @@ class DamageReportTest extends TestCase
             'severity_level' => 5,
         ];
 
-        $response = $this->post(route('reports.store'), $payload);
+        $response = $this->actingAs($user)->post(route('reports.store'), $payload);
 
         $response->assertRedirect(route('reports.index'));
         $response->assertSessionHas('success');
@@ -79,13 +105,11 @@ class DamageReportTest extends TestCase
         $this->assertDatabaseHas('damage_reports', [
             'school_id' => $school->id,
             'category_id' => $category->id,
+            'reporter_id' => $user->id,
             'title' => 'Kerusakan RKB Akibat Angin Kencang',
             'severity_level' => 5,
             'status' => 'pending',
         ]);
-
-        // Cleanup
-        DamageReport::where('title', 'Kerusakan RKB Akibat Angin Kencang')->delete();
     }
 
     /**
@@ -142,6 +166,7 @@ class DamageReportTest extends TestCase
      */
     public function test_reports_store_validates_photos_array_and_mimes(): void
     {
+        $user = $this->createAuthenticatedUser();
         $school = School::active()->first();
         $category = FacilityCategory::where('is_enabled', true)->first();
 
@@ -156,7 +181,7 @@ class DamageReportTest extends TestCase
             'photos' => [$invalidFile],
         ];
 
-        $responseInvalid = $this->post(route('reports.store'), $payloadInvalidMime);
+        $responseInvalid = $this->actingAs($user)->post(route('reports.store'), $payloadInvalidMime);
         $responseInvalid->assertSessionHasErrors(['photos.0']);
 
         // 2. Uji batas maksimal 5 berkas foto
@@ -177,7 +202,7 @@ class DamageReportTest extends TestCase
             'photos' => $tooManyPhotos,
         ];
 
-        $responseTooMany = $this->post(route('reports.store'), $payloadTooMany);
+        $responseTooMany = $this->actingAs($user)->post(route('reports.store'), $payloadTooMany);
         $responseTooMany->assertSessionHasErrors(['photos']);
     }
 
@@ -188,6 +213,7 @@ class DamageReportTest extends TestCase
     {
         Storage::fake('public');
 
+        $user = $this->createAuthenticatedUser();
         $school = School::active()->first();
         $category = FacilityCategory::where('is_enabled', true)->first();
 
@@ -203,7 +229,7 @@ class DamageReportTest extends TestCase
             'photos' => [$photo1, $photo2],
         ];
 
-        $response = $this->post(route('reports.store'), $payload);
+        $response = $this->actingAs($user)->post(route('reports.store'), $payload);
 
         $response->assertRedirect(route('reports.index'));
         $response->assertSessionHas('success');

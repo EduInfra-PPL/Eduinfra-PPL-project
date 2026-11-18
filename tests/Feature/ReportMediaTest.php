@@ -6,8 +6,10 @@ use App\Models\DamageReport;
 use App\Models\FacilityCategory;
 use App\Models\ReportMedia;
 use App\Models\School;
+use App\Models\User;
 use App\Services\Media\ExifExtractionService;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +17,12 @@ use Tests\TestCase;
 
 class ReportMediaTest extends TestCase
 {
+    use DatabaseTransactions;
+
+    private function createAuthenticatedUser(): User
+    {
+        return User::factory()->create();
+    }
     /**
      * Memastikan tabel report_media memiliki seluruh kolom yang disyaratkan PBI-05.
      */
@@ -123,14 +131,16 @@ class ReportMediaTest extends TestCase
             'status' => 'pending',
         ]);
 
+        $user = $this->createAuthenticatedUser();
+
         // 1. Tanpa berkas (File required)
-        $responseEmpty = $this->postJson(route('reports.media.store', $report), []);
+        $responseEmpty = $this->actingAs($user)->postJson(route('reports.media.store', $report), []);
         $responseEmpty->assertStatus(422);
         $responseEmpty->assertJsonValidationErrors(['file']);
 
         // 2. Berkas bukan gambar (misal file text/pdf)
         $invalidFile = UploadedFile::fake()->create('dokumen.pdf', 100, 'application/pdf');
-        $responseInvalid = $this->postJson(route('reports.media.store', $report), ['file' => $invalidFile]);
+        $responseInvalid = $this->actingAs($user)->postJson(route('reports.media.store', $report), ['file' => $invalidFile]);
         $responseInvalid->assertStatus(422);
         $responseInvalid->assertJsonValidationErrors(['file']);
 
@@ -160,7 +170,7 @@ class ReportMediaTest extends TestCase
 
         $file = UploadedFile::fake()->image('bukti_kerusakan.jpg', 640, 480);
 
-        $response = $this->postJson(route('reports.media.store', $report), ['file' => $file]);
+        $response = $this->actingAs($this->createAuthenticatedUser())->postJson(route('reports.media.store', $report), ['file' => $file]);
 
         $response->assertStatus(201);
         $response->assertJson([
@@ -223,7 +233,7 @@ class ReportMediaTest extends TestCase
 
         $file = UploadedFile::fake()->image('foto_valid_geofence.jpg', 800, 600);
 
-        $response = $this->postJson(route('reports.media.store', $report), ['file' => $file]);
+        $response = $this->actingAs($this->createAuthenticatedUser())->postJson(route('reports.media.store', $report), ['file' => $file]);
 
         $response->assertStatus(201);
         $response->assertJson([
@@ -282,7 +292,7 @@ class ReportMediaTest extends TestCase
 
         $file = UploadedFile::fake()->image('foto_flagged.jpg', 800, 600);
 
-        $response = $this->postJson(route('reports.media.store', $report), ['file' => $file]);
+        $response = $this->actingAs($this->createAuthenticatedUser())->postJson(route('reports.media.store', $report), ['file' => $file]);
 
         $response->assertStatus(201);
         $response->assertJson([
@@ -342,7 +352,7 @@ class ReportMediaTest extends TestCase
         $this->assertDatabaseHas('report_media', ['id' => $media->id]);
 
         // Eksekusi DELETE via Controller
-        $response = $this->deleteJson(route('reports.media.destroy', $media));
+        $response = $this->actingAs($this->createAuthenticatedUser())->deleteJson(route('reports.media.destroy', $media));
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
@@ -377,7 +387,8 @@ class ReportMediaTest extends TestCase
 
         $file = UploadedFile::fake()->image('bukti_biasa.jpg', 400, 300);
 
-        $response = $this->from(route('reports.create'))
+        $response = $this->actingAs($this->createAuthenticatedUser())
+            ->from(route('reports.create'))
             ->post(route('reports.media.store', $report), ['file' => $file]);
 
         $response->assertRedirect(route('reports.create'));
