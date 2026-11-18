@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Model AidCampaign - Tabel aid_campaigns (Domain 4: Entitas 11 PRD).
@@ -55,6 +56,14 @@ class AidCampaign extends Model
     public function repairProject(): BelongsTo
     {
         return $this->belongsTo('App\Models\RepairProject', 'project_id');
+    }
+
+    /**
+     * Relasi ke daftar riwayat kontribusi donatur (Entitas 12 - PBI-11).
+     */
+    public function contributions(): HasMany
+    {
+        return $this->hasMany(AidContribution::class, 'campaign_id');
     }
 
     /*
