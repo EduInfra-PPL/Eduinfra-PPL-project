@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AidCampaignController;
+use App\Http\Controllers\AidContributionController;
 use App\Http\Controllers\Auth\RegistrationApprovalController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\UserDirectoryController;
@@ -49,7 +50,8 @@ Route::prefix('renovasi')->name('renovasi.')->group(function () {
 Route::prefix('pendanaan')->name('pendanaan.')->group(function () {
     Route::get('/', [AidCampaignController::class, 'index'])->name('index');
     Route::post('/', [AidCampaignController::class, 'store'])->name('store');
-    Route::view('/wall-of-donors', 'pendanaan.wall-of-donors')->name('wall-of-donors');
+    Route::get('/wall-of-donors', [AidContributionController::class, 'wallOfDonors'])->name('wall-of-donors');
+    Route::post('/kontribusi', [AidContributionController::class, 'store'])->name('contributions.store');
 });
 
 // Domain 1: Profil sekolah (PBI-01)
