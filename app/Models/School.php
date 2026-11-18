@@ -10,10 +10,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Tabel schools (PBI-01). coordinates = titik master (PostGIS geography Point)
  * yang menjadi acuan geofence 250 m di Domain 2. Kolom geografi tidak diisi lewat
- * mass assignment; gunakan query spasial di controller.
+ * mass assignment; gunakan query spasial di Action/Service.
  */
 class School extends Model
 {
+    /** Jenjang sesuai FR-17 (filter SD/SMP/SMA). */
+    public const LEVELS = ['SD', 'SMP', 'SMA'];
+
+    public const ACCREDITATIONS = ['A', 'B', 'C'];
+
     protected $table = 'schools';
 
     protected $fillable = ['accreditation', 'contact_phone', 'contact_email', 'is_active'];

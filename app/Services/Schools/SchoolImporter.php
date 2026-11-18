@@ -2,7 +2,7 @@
 
 namespace App\Services\Schools;
 
-use App\Http\Controllers\Api\V1\SchoolController;
+use App\Models\School;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -20,8 +20,6 @@ class SchoolImporter
         'SMP' => 'SMP', 'MTS' => 'SMP', 'SMPLB' => 'SMP',
         'SMA' => 'SMA', 'SMK' => 'SMA', 'MA' => 'SMA', 'SMLB' => 'SMA',
     ];
-
-    private const ACCREDITATIONS = ['A', 'B', 'C'];
 
     /** Titik dari (lng, lat) - urutan bind: lng, lat. */
     private const POINT = 'ST_SetSRID(ST_MakePoint(CAST(? AS float8), CAST(? AS float8)), 4326)::geography';
@@ -54,7 +52,7 @@ class SchoolImporter
             }
             $raw['educational_level'] = $level;
 
-            $validator = Validator::make($raw, $this->profileRules(['required', Rule::in(SchoolController::LEVELS)]));
+            $validator = Validator::make($raw, $this->profileRules(['required', Rule::in(School::LEVELS)]));
             if ($validator->fails()) {
                 $errors[] = ['row' => $rowNo, 'npsn' => $raw['npsn'] ?? null,
                     'message' => implode('; ', $validator->errors()->all())];
@@ -96,7 +94,7 @@ class SchoolImporter
             'address' => ['nullable', 'string', 'max:1000'],
             'lat' => ['required', 'numeric', 'between:-90,90'],
             'lng' => ['required', 'numeric', 'between:-180,180'],
-            'accreditation' => ['nullable', Rule::in(self::ACCREDITATIONS)],
+            'accreditation' => ['nullable', Rule::in(School::ACCREDITATIONS)],
             'contact_phone' => ['nullable', 'string', 'max:30'],
             'contact_email' => ['nullable', 'email', 'max:150'],
             'region_id' => ['nullable', 'integer', 'exists:regions,id'],
