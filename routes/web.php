@@ -52,6 +52,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/milestone/{id}', [RenovasiController::class, 'updateMilestone'])->name('milestones.update');
 
         Route::get('/vendors', [RenovasiController::class, 'vendors'])->name('vendors');
+        Route::post('/vendors', [RenovasiController::class, 'storeVendor'])->name('vendors.store');
+        Route::put('/vendors/{vendor}', [RenovasiController::class, 'updateVendor'])->name('vendors.update');
+        Route::patch('/vendors/{vendor}/blacklist', [RenovasiController::class, 'toggleBlacklistVendor'])->name('vendors.blacklist');
+        Route::delete('/vendors/{vendor}', [RenovasiController::class, 'destroyVendor'])->name('vendors.destroy');
 
         Route::get('/{id}', [RenovasiController::class, 'showProject'])->name('projects.show');
         Route::delete('/{id}', [RenovasiController::class, 'destroy'])->name('projects.destroy');

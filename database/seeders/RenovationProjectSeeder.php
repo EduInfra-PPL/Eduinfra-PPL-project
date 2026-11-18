@@ -7,6 +7,7 @@ use App\Models\DamageReport;
 use App\Models\FacilityCategory;
 use App\Models\ProjectMilestone;
 use App\Models\RepairProject;
+use App\Models\Vendor;
 use Illuminate\Database\Seeder;
 
 class RenovationProjectSeeder extends Seeder
@@ -15,6 +16,10 @@ class RenovationProjectSeeder extends Seeder
     {
         if (DamageReport::count() === 0) {
             $this->call(DamageReportSeeder::class);
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('vendors') && Vendor::count() === 0) {
+            $this->call(VendorSeeder::class);
         }
 
         $categories = FacilityCategory::where('is_enabled', true)->get();
@@ -620,11 +625,16 @@ class RenovationProjectSeeder extends Seeder
                 continue;
             }
 
+            $matchedVendor = \Illuminate\Support\Facades\Schema::hasTable('vendors')
+                ? Vendor::where('company_name', $bp['contractor_name'])->first()
+                : null;
+
             $project = RepairProject::updateOrCreate(
                 ['project_code' => $bp['project_code']],
                 [
                     'school_id' => $report->school_id,
                     'report_id' => $report->id,
+                    'vendor_id' => $matchedVendor?->id,
                     'title' => $bp['title'],
                     'description' => $bp['description'],
                     'status' => $bp['status'],

@@ -30,6 +30,7 @@ class StoreRepairProjectRequest extends FormRequest
             'report_id' => ['nullable', 'integer', 'exists:damage_reports,id'],
             'school_id' => ['required_without:report_id', 'nullable', 'integer', 'exists:schools,id'],
             'facility_category_id' => ['nullable', 'integer', 'exists:facility_categories,id'],
+            'vendor_id' => ['nullable', 'integer', 'exists:vendors,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'budget_allocated' => ['required', 'numeric', 'min:1000000'],

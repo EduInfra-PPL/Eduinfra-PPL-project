@@ -7,6 +7,7 @@ use App\Models\DamageReport;
 use App\Models\FacilityCategory;
 use App\Models\ProjectMilestone;
 use App\Models\RepairProject;
+use App\Models\Vendor;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -17,6 +18,7 @@ class CreateRepairProjectAction
         return DB::transaction(function () use ($data) {
             $damageReport = null;
             $categoryId = $data['facility_category_id'] ?? null;
+            $vendor = ! empty($data['vendor_id']) ? Vendor::find($data['vendor_id']) : null;
 
             if (! empty($data['report_id'])) {
                 $damageReport = DamageReport::with('category')->findOrFail($data['report_id']);
@@ -44,6 +46,7 @@ class CreateRepairProjectAction
                 'project_code' => $projectCode,
                 'school_id' => $data['school_id'],
                 'report_id' => $damageReport?->id,
+                'vendor_id' => $vendor?->id,
                 'title' => $data['title'],
                 'description' => ($data['description'] ?? null) ?: ($damageReport?->description ?? $data['title']),
                 'status' => 'in_progress',
@@ -51,9 +54,9 @@ class CreateRepairProjectAction
                 'target_pct' => 20.00,
                 'budget_allocated' => $budget,
                 'budget_spent' => 0.00,
-                'contractor_name' => ($data['contractor_name'] ?? null) ?: 'Kontraktor Rekanan LPJK Wilayah',
+                'contractor_name' => ($data['contractor_name'] ?? null) ?: ($vendor?->company_name ?? 'Kontraktor Rekanan LPJK Wilayah'),
                 'consortium_name' => ($data['consortium_name'] ?? null) ?: 'Pendanaan APBD & Mitra CSR',
-                'surveyor_name' => ($data['surveyor_name'] ?? null) ?: 'Tim Teknis Sarpras Dinas',
+                'surveyor_name' => ($data['surveyor_name'] ?? null) ?: ($vendor?->lead_engineer ?: 'Tim Teknis Sarpras Dinas'),
                 'inspector_notes' => 'Proyek baru diinisiasi dan siap memulai pekerjaan persiapan tapak.',
                 'priority' => $data['priority'] ?? 'medium',
                 'target_start' => $startDate->toDateString(),
