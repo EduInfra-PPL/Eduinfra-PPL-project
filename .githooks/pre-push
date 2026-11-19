@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+set -e
+
+echo ""
+echo "=========================================================="
+echo " [EduInfra Pre-Push] Memeriksa Kesesuaian Sistem..."
+echo "=========================================================="
+
+# 1. Cek PHP Syntax pada folder app/ dan routes/
+echo "[1/4] Memeriksa syntax PHP (app & routes)..."
+find app routes -type f -name "*.php" | while read -r file; do
+    php -l "$file" > /dev/null
+done
+echo "      OK: Tidak ada syntax error PHP."
+
+# 2. Cek integritas Route Laravel
+echo "[2/4] Memeriksa integritas Route Laravel..."
+php artisan route:list --except-vendor > /dev/null
+echo "      OK: Seluruh route & controller valid."
+
+# 3. Cek kompilasi seluruh template Blade
+echo "[3/4] Memeriksa kompilasi template Blade..."
+php artisan view:cache > /dev/null
+php artisan view:clear > /dev/null
+echo "      OK: Seluruh template Blade berhasil dikompilasi."
+
+# 4. Cek Build Frontend Vite & Tailwind CSS
+echo "[4/4] Menjalankan npm run build (Vite + Tailwind)..."
+npm run build > /dev/null
+echo "      OK: Build frontend berhasil tanpa error."
+
+echo "=========================================================="
+echo " [EduInfra Pre-Push] SEMUA PENGECEKAN LULUS! Melanjutkan push..."
+echo "=========================================================="
+echo ""
