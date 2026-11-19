@@ -48,15 +48,6 @@
                     ['value' => '14.820', 'label' => 'Sekolah 3T Terdata'],
                     ['value' => '34', 'label' => 'Audit Aktif Lapangan', 'accent' => true],
                 ]" />
-
-                <x-slot:footer>
-                    <div class="flex items-start gap-3 text-[11px] text-slate-400 leading-relaxed">
-                        <span class="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-slate-200">
-                            <x-ui.icon name="lock" class="w-3.5 h-3.5" />
-                        </span>
-                        Akses diawasi oleh Ditjen PAUD Dikdasmen &amp; Badan Siber dan Sandi Negara. Pelanggaran tunduk UU ITE No. 1/2024.
-                    </div>
-                </x-slot:footer>
             </x-auth.brand-panel>
 
             <!-- KANAN: FORM LOGIN -->
