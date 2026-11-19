@@ -160,6 +160,10 @@
                                     <x-ui.icon name="building" class="w-4 h-4" />
                                     Profil Sekolah
                                 </a>
+                                <a href="{{ route('admin.categories.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                                    <x-ui.icon name="table" class="w-4 h-4" />
+                                    Kategori Fasilitas
+                                </a>
                                 <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
                                     <x-ui.icon name="shield-check" class="w-4 h-4 text-[#FF5C2A]" />
                                     Tata Kelola Akun &amp; RBAC

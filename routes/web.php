@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\FacilityCategoryAdminController;
+use App\Http\Controllers\Admin\SchoolAdminController;
 use App\Http\Controllers\AidCampaignController;
 use App\Http\Controllers\AidContributionController;
 use App\Http\Controllers\Auth\RegistrationApprovalController;
@@ -52,6 +54,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/milestone/{id}', [RenovasiController::class, 'updateMilestone'])->name('milestones.update');
 
         Route::get('/vendors', [RenovasiController::class, 'vendors'])->name('vendors');
+        Route::post('/vendors', [RenovasiController::class, 'storeVendor'])->name('vendors.store');
+        Route::put('/vendors/{vendor}', [RenovasiController::class, 'updateVendor'])->name('vendors.update');
+        Route::patch('/vendors/{vendor}/blacklist', [RenovasiController::class, 'toggleBlacklistVendor'])->name('vendors.blacklist');
+        Route::delete('/vendors/{vendor}', [RenovasiController::class, 'destroyVendor'])->name('vendors.destroy');
 
         Route::get('/{id}', [RenovasiController::class, 'showProject'])->name('projects.show');
         Route::delete('/{id}', [RenovasiController::class, 'destroy'])->name('projects.destroy');
@@ -66,8 +72,25 @@ Route::middleware('auth')->group(function () {
         Route::post('/kontribusi', [AidContributionController::class, 'store'])->name('contributions.store');
     });
 
-    // Domain 1: Profil sekolah (PBI-01)
-    require __DIR__.'/schools.php';
+    // Domain 1: Master data, khusus Admin Dinas
+    Route::middleware(EnsureAdminDinas::class)->prefix('admin')->name('admin.')->group(function () {
+        // Profil sekolah (PBI-01 / FR-01)
+        Route::prefix('sekolah')->name('schools.')->group(function () {
+            Route::get('/', [SchoolAdminController::class, 'index'])->name('index');
+            Route::post('/', [SchoolAdminController::class, 'store'])->name('store');
+            Route::put('/{id}', [SchoolAdminController::class, 'update'])->whereNumber('id')->name('update');
+            Route::delete('/{id}', [SchoolAdminController::class, 'destroy'])->whereNumber('id')->name('destroy');
+        });
+
+        // Kategori fasilitas dan bobot urgensi (PBI-03 / FR-03)
+        Route::prefix('kategori-fasilitas')->name('categories.')->group(function () {
+            Route::get('/', [FacilityCategoryAdminController::class, 'index'])->name('index');
+            Route::post('/', [FacilityCategoryAdminController::class, 'store'])->name('store');
+            Route::patch('/{id}', [FacilityCategoryAdminController::class, 'update'])->whereNumber('id')->name('update');
+            Route::patch('/{id}/aktifkan', [FacilityCategoryAdminController::class, 'activate'])->whereNumber('id')->name('activate');
+            Route::delete('/{id}', [FacilityCategoryAdminController::class, 'destroy'])->whereNumber('id')->name('destroy');
+        });
+    });
 });
 
 // Domain 5: Registrasi akun pengguna, Approval, & Matriks RBAC (PBI-13 & PBI-14)
@@ -96,4 +119,5 @@ Route::middleware(['auth', EnsureAdminDinas::class])
         Route::get('/', [UserDirectoryController::class, 'index'])->name('index');
         Route::get('/export-audit-log', [UserDirectoryController::class, 'exportAuditLog'])->name('export');
         Route::patch('/{user}/role', [UserDirectoryController::class, 'updateRole'])->name('update-role');
+        Route::post('/custom-roles', [UserDirectoryController::class, 'storeCustomRole'])->name('custom-roles.store');
     });

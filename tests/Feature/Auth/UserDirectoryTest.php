@@ -67,4 +67,24 @@ class UserDirectoryTest extends TestCase
         $response->assertOk();
         $this->assertTrue(str_contains((string) $response->headers->get('content-type'), 'text/csv'));
     }
+
+    public function test_admin_can_create_custom_role(): void
+    {
+        $admin = User::factory()->create(['role_enum' => 'admin_dinas', 'is_verified' => true]);
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.users.custom-roles.store'), [
+                'name' => 'Auditor Khusus Satgassus Tipikor Daerah 3T',
+                'code' => 'stp',
+                'institution' => 'KPK / Satgas Investigasi Tipikor Irjen',
+                'access_level' => 'Level 3 - Audit Forensik & Verifikasi Spasial (Ad-Hoc)',
+                'description' => 'Mandat khusus investigasi',
+                'permissions' => [
+                    'domain1' => ['read' => '1', 'verify' => '1'],
+                ],
+            ]);
+
+        $response->assertRedirect(route('admin.users.index', ['tab' => 'rbac']));
+        $response->assertSessionHas('status');
+    }
 }

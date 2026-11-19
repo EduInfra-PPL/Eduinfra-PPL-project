@@ -9,6 +9,8 @@ use App\Models\ProjectMilestone;
 use App\Models\Region;
 use App\Models\RepairProject;
 use App\Models\School;
+use App\Models\Vendor;
+use Illuminate\Support\Facades\Schema;
 
 class ListRepairProjectsAction
 {
@@ -44,7 +46,12 @@ class ListRepairProjectsAction
         $avgProgress = $totalCount > 0 ? round((float) $allProjects->avg('progress_pct'), 1) : 0.0;
         $onTrackCount = $allProjects->filter(fn (RepairProject $p) => $p->progress_pct >= ($p->target_pct - 5))->count();
 
-        $distinctContractors = $allProjects->pluck('contractor_name')->filter()->unique()->count();
+        $hasVendorTable = Schema::hasTable('vendors');
+        $vendorTotal = $hasVendorTable ? Vendor::count() : 0;
+        $vendorActive = $hasVendorTable ? Vendor::where('is_active', true)->count() : 0;
+        $distinctContractors = $vendorTotal > 0
+            ? $vendorTotal
+            : $allProjects->pluck('contractor_name')->filter()->unique()->count();
         $coveredRegions = $allProjects->pluck('school.region_id')->filter()->unique()->count();
 
         $kpis = [
@@ -66,7 +73,7 @@ class ListRepairProjectsAction
             'total_vendors' => [
                 'val' => (string) $distinctContractors,
                 'unit' => 'Kontraktor',
-                'badge' => "Tersebar di {$coveredRegions} Wilayah",
+                'badge' => $vendorTotal > 0 ? "{$vendorActive} Aktif Terverifikasi LPJK" : "Tersebar di {$coveredRegions} Wilayah",
             ],
         ];
 
@@ -92,6 +99,10 @@ class ListRepairProjectsAction
             ->orderBy('name')
             ->get();
 
+        $vendors = $hasVendorTable
+            ? Vendor::with('serviceRegion')->where('is_active', true)->orderBy('company_name')->get()
+            : collect();
+
         return compact(
             'projects',
             'kpis',
@@ -100,6 +111,7 @@ class ListRepairProjectsAction
             'schools',
             'categories',
             'regions',
+            'vendors',
             'search',
             'status',
             'region',
@@ -200,6 +212,10 @@ class ListRepairProjectsAction
             ->orderBy('name')
             ->get();
 
+        $vendors = Schema::hasTable('vendors')
+            ? Vendor::with('serviceRegion')->where('is_active', true)->orderBy('company_name')->get()
+            : collect();
+
         return compact(
             'projects',
             'kpis',
@@ -208,6 +224,7 @@ class ListRepairProjectsAction
             'verifiedReports',
             'schools',
             'categories',
+            'vendors',
             'search',
             'termin',
             'curve',

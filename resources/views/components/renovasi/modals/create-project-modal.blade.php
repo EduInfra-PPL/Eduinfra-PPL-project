@@ -2,11 +2,12 @@
     'verifiedReports' => collect(),
     'schools' => collect(),
     'categories' => collect(),
+    'vendors' => collect(),
 ])
 
 @php
     $hasValidationErrors = $errors->hasAny([
-        'report_id', 'damage_report_id', 'school_id', 'facility_category_id',
+        'report_id', 'damage_report_id', 'school_id', 'facility_category_id', 'vendor_id',
         'title', 'priority', 'budget_allocated', 'contractor_name', 'consortium_name',
         'surveyor_name', 'target_start', 'target_end', 'description',
     ]);
@@ -21,7 +22,21 @@
         selectedSchoolId: '{{ $defaultSchoolId }}',
         selectedCategoryId: '{{ $defaultCategoryId }}',
         selectedPriority: '{{ old('priority', 'high') }}',
+        selectedVendorId: '{{ old('vendor_id', '') }}',
+        contractorName: @js(old('contractor_name', '')),
+        surveyorName: @js(old('surveyor_name', '')),
         submitting: false,
+        onVendorChange(e) {
+            const opt = e.target.options[e.target.selectedIndex];
+            const name = opt.getAttribute('data-company');
+            const engineer = opt.getAttribute('data-engineer');
+            if (name) {
+                this.contractorName = name;
+            }
+            if (engineer && !this.surveyorName) {
+                this.surveyorName = engineer;
+            }
+        },
         onReportChange(e) {
             const opt = e.target.options[e.target.selectedIndex];
             const title = opt.getAttribute('data-title');
@@ -218,15 +233,28 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="create-contractor" class="block text-xs font-bold text-slate-800 mb-1.5">
-                                Kontraktor Pelaksana / Rekanan LPJK
+                            <label for="create-vendor-id" class="block text-xs font-bold text-slate-800 mb-1.5">
+                                Pilih Kontraktor dari Direktori LPJK (PBI-09)
                             </label>
-                            <input id="create-contractor"
-                                   type="text"
+                            <select id="create-vendor-id"
+                                    name="vendor_id"
+                                    x-model="selectedVendorId"
+                                    @change="onVendorChange($event)"
+                                    class="w-full text-xs font-medium rounded-xl border-slate-300 focus:border-[#C83E13] focus:ring-[#C83E13] py-2.5 px-3 text-slate-900">
+                                <option value="">-- Input Nama Kontraktor Manual --</option>
+                                @foreach($vendors as $ven)
+                                    <option value="{{ $ven->id }}"
+                                            data-company="{{ $ven->company_name }}"
+                                            data-engineer="{{ $ven->lead_engineer }}">
+                                        [{{ $ven->grade }}] {{ $ven->company_name }} ({{ $ven->serviceRegion?->name ?? 'Nasional' }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <input type="text"
                                    name="contractor_name"
-                                   value="{{ old('contractor_name', '') }}"
-                                   placeholder="Contoh: CV Karya Bangun Nusantara (LPJK)"
-                                   class="w-full text-xs font-medium rounded-xl border-slate-300 focus:border-[#C83E13] focus:ring-[#C83E13] py-2.5 px-3 text-slate-900">
+                                   x-model="contractorName"
+                                   placeholder="Atau ketik nama kontraktor pelaksana..."
+                                   class="mt-1.5 w-full text-xs font-medium rounded-xl border-slate-300 focus:border-[#C83E13] focus:ring-[#C83E13] py-2 px-3 text-slate-900">
                         </div>
 
                         <div>
@@ -236,7 +264,7 @@
                             <input id="create-surveyor"
                                    type="text"
                                    name="surveyor_name"
-                                   value="{{ old('surveyor_name', '') }}"
+                                   x-model="surveyorName"
                                    placeholder="Contoh: Tim Teknis Sarpras Dinas Pendidikan"
                                    class="w-full text-xs font-medium rounded-xl border-slate-300 focus:border-[#C83E13] focus:ring-[#C83E13] py-2.5 px-3 text-slate-900">
                         </div>

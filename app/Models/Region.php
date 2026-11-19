@@ -7,10 +7,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Tabel regions (PBI-02). boundary_polygon bertipe PostGIS geography dan besar,
- * jadi disembunyikan; ambil lewat query spasial (ST_AsGeoJSON) di controller.
+ * jadi disembunyikan; ambil lewat query spasial (ST_AsGeoJSON) di RegionQueryService.
  */
 class Region extends Model
 {
+    /** Tingkat wilayah administrasi. */
+    public const LEVELS = ['prov', 'kab', 'kec'];
+
+    /** is_3t_tier: 0 = bukan 3T, 1 = Tier-1 (prioritas lebih tinggi), 2 = Tier-2. */
+    public const THREE_T_TIERS = [0, 1, 2];
+
     protected $table = 'regions';
 
     /** is_3t (kolom turunan) tidak ikut fillable: dihitung oleh database. */

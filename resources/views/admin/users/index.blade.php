@@ -18,6 +18,7 @@
             'guru' => ['label' => 'Read Profil Sendiri', 'type' => 'read'],
             'auditor' => ['label' => 'Read Wilayah Penugasan', 'type' => 'read'],
             'csr' => ['label' => 'Read Publik / Katalog', 'type' => 'read'],
+            'key' => 'domain1',
         ],
         [
             'module' => 'Domain 2: Pelaporan Kerusakan & EXIF GPS',
@@ -26,6 +27,7 @@
             'guru' => ['label' => 'Create & Upload Media', 'type' => 'create'],
             'auditor' => ['label' => 'Validasi Audit Lapangan', 'type' => 'create'],
             'csr' => ['label' => 'Read Laporan Terverifikasi', 'type' => 'read'],
+            'key' => 'domain2',
         ],
         [
             'module' => 'Domain 3: Manajemen Renovasi & RAB',
@@ -34,6 +36,7 @@
             'guru' => ['label' => 'Read Milestone Fisik', 'type' => 'read'],
             'auditor' => ['label' => 'Draft RAB & Update Progress', 'type' => 'create'],
             'csr' => ['label' => 'Read Progress Proyek', 'type' => 'read'],
+            'key' => 'domain3',
         ],
         [
             'module' => 'Domain 4: Matching CSR & Donasi Sarpras',
@@ -42,6 +45,7 @@
             'guru' => ['label' => 'Read Penerima Manfaat', 'type' => 'read'],
             'auditor' => ['label' => 'Verifikasi Lapangan Vendor', 'type' => 'read'],
             'csr' => ['label' => 'Create & Salurkan Bantuan', 'type' => 'create'],
+            'key' => 'domain4',
         ],
         [
             'module' => 'Domain 5: Registrasi, Approval & Matriks RBAC',
@@ -50,6 +54,7 @@
             'guru' => ['label' => 'Hanya Registrasi & Profil', 'type' => 'restricted'],
             'auditor' => ['label' => 'Hanya Registrasi & Profil', 'type' => 'restricted'],
             'csr' => ['label' => 'Hanya Registrasi & Profil', 'type' => 'restricted'],
+            'key' => 'domain5',
         ],
         [
             'module' => 'Anti-Fraud: Investigasi Dugaan Penyimpangan',
@@ -58,17 +63,88 @@
             'guru' => ['label' => 'Buat Laporan Dugaan Fraud', 'type' => 'create'],
             'auditor' => ['label' => 'Catat Temuan Lapangan', 'type' => 'create'],
             'csr' => ['label' => 'Lapor Dugaan Fraud CSR', 'type' => 'create'],
+            'key' => 'domain6',
         ],
     ];
+
+    $totalRolesCount = 4 + ($customRoles ? $customRoles->count() : 0);
 @endphp
 
 <x-layouts.app title="Tata Kelola Akun, Matriks RBAC & Eskalasi Pengaduan Fraud">
     <div x-data="{ 
             activeMainTab: '{{ $tab ?? 'users' }}',
             editModalOpen: false,
+            addRoleModalOpen: false,
             selectedUser: null,
             selectedRole: '',
             showBsreToast: true,
+
+            // Form data Tambah Peran Khusus (Custom RBAC Role)
+            customRole: {
+                name: 'Auditor Khusus Satgassus Tipikor Daerah 3T',
+                code: 'STP',
+                institution: 'KPK / Satgas Investigasi Tipikor Irjen',
+                access_level: 'Level 3 - Audit Forensik & Verifikasi Spasial (Ad-Hoc)',
+                description: 'Diberikan mandat khusus investigasi penyelewengan dana renovasi sekolah 3T, inspeksi bukti fisik drone/lapangan, pengujian spasial real-time, serta hak instruksi pembekuan sementara akun vendor dan rekening proyek bermasalah berdasarkan SK Mendikbudristek No. 492/P/2024.',
+                permissions: {
+                    domain1: { read: true, write: false, delete: false, verify: true },
+                    domain2: { read: true, write: true, delete: false, verify: true },
+                    domain3: { read: true, write: false, delete: false, verify: true },
+                    domain4: { read: true, write: false, delete: false, verify: true },
+                    domain5: { read: true, write: false, delete: false, verify: true },
+                    domain6: { read: true, write: true, delete: true, verify: true }
+                }
+            },
+
+            activePreset: 'investigatif',
+
+            applyPreset(preset) {
+                this.activePreset = preset;
+                if (preset === 'investigatif') {
+                    this.customRole.name = 'Auditor Khusus Satgassus Tipikor Daerah 3T';
+                    this.customRole.code = 'STP';
+                    this.customRole.institution = 'KPK / Satgas Investigasi Tipikor Irjen';
+                    this.customRole.access_level = 'Level 3 - Audit Forensik & Verifikasi Spasial (Ad-Hoc)';
+                    this.customRole.description = 'Diberikan mandat khusus investigasi penyelewengan dana renovasi sekolah 3T, inspeksi bukti fisik drone/lapangan, pengujian spasial real-time, serta hak instruksi pembekuan sementara akun vendor dan rekening proyek bermasalah berdasarkan SK Mendikbudristek No. 492/P/2024.';
+                    this.customRole.permissions = {
+                        domain1: { read: true, write: false, delete: false, verify: true },
+                        domain2: { read: true, write: true, delete: false, verify: true },
+                        domain3: { read: true, write: false, delete: false, verify: true },
+                        domain4: { read: true, write: false, delete: false, verify: true },
+                        domain5: { read: true, write: false, delete: false, verify: true },
+                        domain6: { read: true, write: true, delete: true, verify: true }
+                    };
+                } else if (preset === 'finansial') {
+                    this.customRole.name = 'Pengawas Finansial & Akuntabilitas BPKP';
+                    this.customRole.code = 'PFN';
+                    this.customRole.institution = 'Badan Pengawasan Keuangan dan Pembangunan (BPKP)';
+                    this.customRole.access_level = 'Level 4 - Otorisator Anggaran & Administrator Penuh';
+                    this.customRole.description = 'Pengawasan berkala arus kas termin CSR, audit faktur pengadaan konstruksi sekolah 3T, dan sinkronisasi rekening bank escrow pemerintah.';
+                    this.customRole.permissions = {
+                        domain1: { read: true, write: false, delete: false, verify: false },
+                        domain2: { read: true, write: false, delete: false, verify: true },
+                        domain3: { read: true, write: false, delete: false, verify: true },
+                        domain4: { read: true, write: true, delete: false, verify: true },
+                        domain5: { read: true, write: false, delete: false, verify: false },
+                        domain6: { read: true, write: true, delete: false, verify: true }
+                    };
+                } else if (preset === 'spasial') {
+                    this.customRole.name = 'Verifikator Spasial & Batas Terluar BIG';
+                    this.customRole.code = 'VSB';
+                    this.customRole.institution = 'Badan Informasi Geospasial (BIG)';
+                    this.customRole.access_level = 'Level 2 - Verifikator Lapangan & Inspeksi Fisik';
+                    this.customRole.description = 'Validasi batas poligon wilayah 3T batas negara, koreksi radius geofencing 250m titik koordinat sekolah, dan analisis citra satelit resolusi tinggi.';
+                    this.customRole.permissions = {
+                        domain1: { read: true, write: true, delete: false, verify: true },
+                        domain2: { read: true, write: false, delete: false, verify: true },
+                        domain3: { read: true, write: false, delete: false, verify: false },
+                        domain4: { read: true, write: false, delete: false, verify: false },
+                        domain5: { read: true, write: false, delete: false, verify: false },
+                        domain6: { read: true, write: false, delete: false, verify: false }
+                    };
+                }
+            },
+
             openEditRole(user) {
                 this.selectedUser = user;
                 this.selectedRole = user.role_enum || 'pelapor_guru';
@@ -86,7 +162,7 @@
                     </svg>
                     <span>{{ session('status') }}</span>
                 </div>
-                <button type="button" @click="$el.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700">✕</button>
+                <button type="button" @click="$el.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 font-bold">✕</button>
             </div>
         @endif
 
@@ -108,7 +184,7 @@
                     </p>
                 </div>
 
-                <!-- Action Buttons: Unduh CSV & Registrasi Baru -->
+                <!-- Action Buttons: Unduh CSV, Tambah Peran Kustom, & Registrasi Baru -->
                 <div class="flex items-center gap-3">
                     <a href="{{ route('admin.users.export') }}"
                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-full border border-slate-200/80 shadow-xs transition-all">
@@ -117,6 +193,16 @@
                         </svg>
                         Unduh Audit Log Keamanan (.CSV)
                     </a>
+
+                    <!-- Trigger Tambah Peran Khusus Baru (PBI-14) -->
+                    <button type="button" 
+                            @click="addRoleModalOpen = true"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#14171F] hover:bg-slate-800 text-white text-xs font-bold rounded-full shadow-xs transition-all">
+                        <svg class="w-4 h-4 text-[#FF5C2A]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Tambah Peran Khusus
+                    </button>
 
                     <a href="{{ route('register') }}"
                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#FF5C2A] hover:bg-[#e04f22] text-white text-xs font-bold rounded-full shadow-sm hover:shadow-md transition-all">
@@ -150,26 +236,22 @@
                     class="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full transition-all">
                 Matriks RBAC
                 <span :class="activeMainTab === 'rbac' ? 'bg-[#2A2E3B] text-slate-200' : 'bg-slate-200/70 text-slate-700'" class="px-2 py-0.5 text-[10px] font-bold rounded-full">
-                    4 Peran
+                    {{ $totalRolesCount }} Peran
                 </span>
             </button>
 
-            <!-- Tab 3: Investigasi Dugaan Fraud -->
+            <!-- Tab 3: Investigasi Dugaan Fraud (Dummy Tampilan) -->
             <button type="button" 
-                    @click="activeMainTab = 'fraud'"
-                    :class="activeMainTab === 'fraud' ? 'bg-[#14171F] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white'"
-                    class="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full transition-all">
+                    class="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full transition-all text-slate-600 hover:text-slate-800">
                 Investigasi Dugaan Fraud
                 <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#FF5C2A] text-white">
                     4 Tiket
                 </span>
             </button>
 
-            <!-- Tab 4: Sesi & Aktivitas -->
+            <!-- Tab 4: Sesi & Aktivitas (Dummy Tampilan) -->
             <button type="button" 
-                    @click="activeMainTab = 'sessions'"
-                    :class="activeMainTab === 'sessions' ? 'bg-[#14171F] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white'"
-                    class="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full transition-all">
+                    class="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full transition-all text-slate-600 hover:text-slate-800">
                 Sesi &amp; Aktivitas
             </button>
         </div>
@@ -206,10 +288,10 @@
                 <div>
                     <p class="text-[10px] font-extrabold tracking-wider text-slate-400 uppercase">Matriks Peran RBAC</p>
                     <div class="text-2xl font-black text-[#14171F] mt-1">
-                        4 Peran <span class="text-xs font-semibold text-slate-400">Definisi</span>
+                        {{ $totalRolesCount }} Peran <span class="text-xs font-semibold text-slate-400">Definisi</span>
                     </div>
                     <p class="text-[11px] font-medium text-slate-500 mt-2 truncate max-w-[210px]">
-                        Admin, Auditor, Pelapor Guru, Mitra CSR
+                        Admin, Auditor, Verifikator, CSR, Kepsek, Vendor
                     </p>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600">
@@ -323,7 +405,6 @@
                                 ];
                                 $avatarBg = $colorPalettes[$u->id % count($colorPalettes)];
                                 
-                                // Mockup network channel logic based on user id for realistic display
                                 $channels = [
                                     'Kanal Satelit VSAT Prioritas',
                                     'SMS Gateway Cadangan (3T)',
@@ -334,7 +415,6 @@
                                 ];
                                 $userChannel = $channels[$u->id % count($channels)];
 
-                                // 2FA badge styles
                                 $twoFactorBadges = [
                                     ['label' => '2FA FIDO2', 'class' => 'bg-cyan-50 text-cyan-700 border border-cyan-200'],
                                     ['label' => 'SMS/OTP', 'class' => 'bg-amber-50 text-amber-700 border border-amber-200'],
@@ -432,7 +512,7 @@
                                         <div class="flex items-center gap-2">
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                                Menunggu Verifikasi
+                                                Menunggu Verifikasi (OSS)
                                             </span>
                                             <a href="{{ route('admin.registrations.index') }}" 
                                                class="px-2.5 py-1 text-[11px] font-bold bg-[#FF5C2A] hover:bg-[#e04f22] text-white rounded-lg shadow-xs transition-colors">
@@ -502,11 +582,21 @@
                         Definisi wewenang granular per peran berdasarkan ketentuan dokumen PRD &amp; Spesifikasi Teknis EduInfra Tracker.
                     </p>
                 </div>
-                <div class="flex items-center gap-2 text-xs font-semibold">
-                    <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Full Access</span>
-                    <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">✚ Create &amp; Update</span>
-                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600">👁 Read Only</span>
-                    <span class="px-3 py-1 rounded-full bg-rose-50 text-rose-600">✕ Terbatas / Dibatasi</span>
+                <div class="flex items-center gap-3">
+                    <button type="button" 
+                            @click="addRoleModalOpen = true"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-[#FF5C2A] hover:bg-[#e04f22] text-white text-xs font-bold rounded-full shadow-xs transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Tambah Peran Khusus Baru
+                    </button>
+                    <div class="flex items-center gap-2 text-xs font-semibold">
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Full Access</span>
+                        <span class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">✚ Create &amp; Update</span>
+                        <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">👁 Read Only</span>
+                        <span class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-600">✕ Dibatasi</span>
+                    </div>
                 </div>
             </div>
 
@@ -515,7 +605,7 @@
                 <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
                     <thead class="bg-[#14171F] text-white text-[11px] font-bold">
                         <tr>
-                            <th class="py-4 px-4 w-1/3">Modul / Domain Sistem</th>
+                            <th class="py-4 px-4 w-1/4">Modul / Domain Sistem</th>
                             <th class="py-4 px-3 text-center border-l border-slate-800">
                                 Admin Dinas
                                 <div class="text-[9px] font-normal text-slate-300">admin_dinas</div>
@@ -532,6 +622,14 @@
                                 Mitra CSR
                                 <div class="text-[9px] font-normal text-slate-300">mitra_csr</div>
                             </th>
+                            @if ($customRoles && $customRoles->count() > 0)
+                                @foreach ($customRoles as $cr)
+                                    <th class="py-4 px-3 text-center border-l border-slate-800 bg-[#FF5C2A]/20">
+                                        {{ data_get($cr, 'name') }}
+                                        <div class="text-[9px] font-bold text-[#FF5C2A]">{{ data_get($cr, 'code') }} • {{ data_get($cr, 'institution') }}</div>
+                                    </th>
+                                @endforeach
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs">
@@ -599,6 +697,44 @@
                                         </span>
                                     @endif
                                 </td>
+
+                                <!-- Custom Roles dynamic columns -->
+                                @if ($customRoles && $customRoles->count() > 0)
+                                    @foreach ($customRoles as $cr)
+                                        @php
+                                            $key = $row['key'];
+                                            $allPerms = data_get($cr, 'permissions', []);
+                                            $perms = is_array($allPerms) ? ($allPerms[$key] ?? []) : [];
+                                            $hasVerify = !empty($perms['verify']);
+                                            $hasWrite = !empty($perms['write']);
+                                            $hasDelete = !empty($perms['delete']);
+                                            $hasRead = !empty($perms['read']);
+                                        @endphp
+                                        <td class="py-4 px-3 text-center border-l border-slate-100 align-middle bg-slate-50/50">
+                                            @if ($hasVerify && $hasWrite)
+                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-[#FF5C2A] border border-orange-200">
+                                                    Verifikasi &amp; Tulis
+                                                </span>
+                                            @elseif ($hasVerify)
+                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                    Verifikasi Lapangan
+                                                </span>
+                                            @elseif ($hasWrite)
+                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                    ✚ Tulis / Buat
+                                                </span>
+                                            @elseif ($hasRead)
+                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                    👁 Baca / Review
+                                                </span>
+                                            @else
+                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-600">
+                                                    ✕ Dibatasi
+                                                </span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>
@@ -606,69 +742,409 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- TAB CONTENT 3: INVESTIGASI DUGAAN FRAUD    -->
-        <!-- ========================================== -->
-        <div x-show="activeMainTab === 'fraud'" x-cloak class="bg-white rounded-2xl lg:rounded-3xl p-6 shadow-sm border border-slate-100">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
-                <div>
-                    <h2 class="text-lg font-extrabold text-[#14171F]">Tiket Pengaduan Investigasi Dugaan Fraud (Anti-Fraud Gate)</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Eskalasi temuan anomali geofencing &gt;250m, dugaan markup RAB, dan faktur ganda ke Inspektorat Jenderal.</p>
-                </div>
-                <span class="px-3 py-1 rounded-full bg-rose-50 text-[#FF5C2A] text-xs font-bold border border-orange-200">
-                    4 Tiket Prioritas Tinggi
-                </span>
-            </div>
-
-            <div class="space-y-3">
-                <div class="p-4 rounded-2xl bg-[#F8FAFC] border border-slate-200/70 flex items-start justify-between">
+        <!-- ======================================================== -->
+        <!-- MODAL: TAMBAH PERAN KHUSUS BARU (CUSTOM RBAC ROLE) (PBI-14) -->
+        <!-- ======================================================== -->
+        <div x-show="addRoleModalOpen" 
+             x-cloak
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex justify-center items-start sm:items-center p-3 sm:p-5">
+            <div @click.away="addRoleModalOpen = false" 
+                 class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden my-auto">
+                
+                <!-- Modal Top Header & Badges (Sticky Header) -->
+                <div class="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-start justify-between shrink-0 bg-white">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-800">TIKET #FRD-2026-004</span>
-                            <span class="text-xs font-bold text-[#14171F]">Anomali EXIF GPS Jarak 1.840m pada Pelaporan SDN 02 Sambas</span>
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-orange-50 text-[#FF5C2A] border border-orange-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#FF5C2A]"></span>
+                                Definisi Peran Kustom • PBI-14
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                ISO/IEC 27001 Compliant
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+                                <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                                Prinsip Least-Privilege
+                            </span>
                         </div>
-                        <p class="text-[11px] text-slate-500 mt-1">Dilaporkan oleh Relawan Audit • Koordinat foto tidak sesuai radius batas toleransi geofence 250m.</p>
+                        <h2 class="text-lg sm:text-xl font-black text-[#14171F] tracking-tight">
+                            Tambah Peran Khusus Baru (Custom RBAC Role)
+                        </h2>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
+                            Konfigurasikan kode peran, hierarki instansi penanggung jawab, dan matriks hak akses modular berbasis prinsip <em>Least-Privilege</em> &amp; standar kepatuhan BSrE BSSN.
+                        </p>
                     </div>
-                    <span class="px-3 py-1 text-[11px] font-bold rounded-full bg-amber-100 text-amber-800">Dalam Investigasi</span>
+
+                    <button type="button" @click="addRoleModalOpen = false" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-lg transition-colors shrink-0 ml-3">
+                        ✕
+                    </button>
                 </div>
 
-                <div class="p-4 rounded-2xl bg-[#F8FAFC] border border-slate-200/70 flex items-start justify-between">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-800">TIKET #FRD-2026-003</span>
-                            <span class="text-xs font-bold text-[#14171F]">Indikasi Duplikasi Faktur Belanja Semen Proyek Rehabilitasi Atap</span>
+                <!-- Form Section with Scrollable Body & Fixed Footer -->
+                <form action="{{ route('admin.users.custom-roles.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden min-h-0">
+                    @csrf
+
+                    <!-- Scrollable Form Body -->
+                    <div class="overflow-y-auto p-5 sm:p-6 space-y-5 flex-1">
+                        <!-- SECTION 01: IDENTITAS & KLASIFIKASI PERAN -->
+                    <div class="p-5 rounded-2xl bg-[#F8FAFC] border border-slate-200/70">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-200/60 mb-4">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-6 h-6 rounded-full bg-[#FF5C2A] text-white flex items-center justify-center text-xs font-black">
+                                    01
+                                </span>
+                                <div>
+                                    <h3 class="text-xs font-black text-[#14171F]">Identitas &amp; Klasifikasi Peran</h3>
+                                    <p class="text-[10px] text-slate-400">Atribut formal wewenang otoritas, penamaan sistem, dan instansi penanggung jawab.</p>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-orange-100 text-[#FF5C2A]">
+                                Wajib Diisi
+                            </span>
                         </div>
-                        <p class="text-[11px] text-slate-500 mt-1">Vendor: PT Papua Konstruksi • Nomor faktur identik dengan pencairan termin ke-1.</p>
-                    </div>
-                    <span class="px-3 py-1 text-[11px] font-bold rounded-full bg-rose-100 text-rose-800">Eskalasi Irjen</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- ========================================== -->
-        <!-- TAB CONTENT 4: SESI & AKTIVITAS            -->
-        <!-- ========================================== -->
-        <div x-show="activeMainTab === 'sessions'" x-cloak class="bg-white rounded-2xl lg:rounded-3xl p-6 shadow-sm border border-slate-100">
-            <h2 class="text-lg font-extrabold text-[#14171F] mb-1">Audit Log Sesi Pengguna &amp; Keamanan BSrE</h2>
-            <p class="text-xs text-slate-500 mb-5">Pencatatan real-time jejak digital login, enkripsi TLS 1.3, dan verifikasi sertifikat digital tanda tangan elektronik.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                            <!-- Nama Peran Resmi -->
+                            <div class="md:col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">
+                                    Nama Peran Resmi (Role Name) <span class="text-[#FF5C2A]">*</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
+                                        </svg>
+                                    </span>
+                                    <input type="text" 
+                                           name="name" 
+                                           x-model="customRole.name" 
+                                           required
+                                           placeholder="Contoh: Auditor Khusus Satgassus Tipikor Daerah 3T"
+                                           class="w-full pl-9 pr-3 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-200 focus:border-[#FF5C2A] focus:outline-none">
+                                </div>
+                            </div>
 
-            <div class="space-y-2">
-                @foreach ($users->take(5) as $u)
-                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-slate-200/60 flex items-center justify-between text-xs">
-                        <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                            <!-- Kode Peran -->
                             <div>
-                                <span class="font-bold text-slate-800">{{ $u->name }}</span>
-                                <span class="text-slate-400 text-[11px] ml-1">({{ $u->email }})</span>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-[11px] font-bold text-slate-700">
+                                        Kode Peran <span class="text-[#FF5C2A]">*</span>
+                                    </label>
+                                    <span class="text-[9px] text-slate-400">3-4 Huruf Kapital</span>
+                                </div>
+                                <div class="relative flex items-center">
+                                    <input type="text" 
+                                           name="code" 
+                                           x-model="customRole.code" 
+                                           maxlength="6"
+                                           required
+                                           @input="customRole.code = customRole.code.toUpperCase()"
+                                           placeholder="STP"
+                                           class="w-full px-3 py-2 text-xs font-black tracking-wider text-slate-900 rounded-xl bg-white border border-slate-200 focus:border-[#FF5C2A] focus:outline-none">
+                                    <span class="absolute right-2 px-1.5 py-0.5 text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded">
+                                        Tersedia
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 text-slate-400 font-mono text-[11px]">
-                            <span>IP: 180.252.{{ ($u->id * 11) % 255 }}.{{ ($u->id * 19) % 255 }}</span>
-                            <span>{{ $u->last_login_at ? Carbon::parse($u->last_login_at)->format('d M Y H:i:s') : 'Baru Terdaftar' }}</span>
-                            <span class="text-emerald-600 font-bold">BSrE Verified ✓</span>
+
+                        <!-- Instansi & Level Akses -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">
+                                    Instansi / Entitas Induk Wewenang <span class="text-[#FF5C2A]">*</span>
+                                </label>
+                                <select name="institution" x-model="customRole.institution" required class="w-full px-3 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-200 focus:border-[#FF5C2A] focus:outline-none">
+                                    <option value="KPK / Satgas Investigasi Tipikor Irjen">KPK / Satgas Investigasi Tipikor Irjen</option>
+                                    <option value="Kemendikbudristek RI / Ditjen PAUD Dikdasmen">Kemendikbudristek RI / Ditjen PAUD Dikdasmen</option>
+                                    <option value="Inspektorat Jenderal (Itjen Kemendikbud)">Inspektorat Jenderal (Itjen Kemendikbud)</option>
+                                    <option value="Kementerian PUPR / Balai Cipta Karya">Kementerian PUPR / Balai Cipta Karya</option>
+                                    <option value="Badan Informasi Geospasial (BIG)">Badan Informasi Geospasial (BIG)</option>
+                                    <option value="Badan Pengawasan Keuangan dan Pembangunan (BPKP)">Badan Pengawasan Keuangan dan Pembangunan (BPKP)</option>
+                                    <option value="Konsorsium BUMN / Mitra CSR Nasional">Konsorsium BUMN / Mitra CSR Nasional</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">
+                                    Tingkat Granularitas / Level Akses <span class="text-[#FF5C2A]">*</span>
+                                </label>
+                                <select name="access_level" x-model="customRole.access_level" required class="w-full px-3 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-200 focus:border-[#FF5C2A] focus:outline-none">
+                                    <option value="Level 3 - Audit Forensik & Verifikasi Spasial (Ad-Hoc)">Level 3 - Audit Forensik &amp; Verifikasi Spasial (Ad-Hoc)</option>
+                                    <option value="Level 1 - Pengawas Publik & Monitoring Umum">Level 1 - Pengawas Publik &amp; Monitoring Umum</option>
+                                    <option value="Level 2 - Verifikator Lapangan & Inspeksi Fisik">Level 2 - Verifikator Lapangan &amp; Inspeksi Fisik</option>
+                                    <option value="Level 4 - Otorisator Anggaran & Administrator Penuh">Level 4 - Otorisator Anggaran &amp; Administrator Penuh</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Deskripsi Tugas & SK -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">
+                                Deskripsi Tugas, Landasan SK &amp; Wewenang Audit <span class="text-[#FF5C2A]">*</span>
+                            </label>
+                            <textarea name="description" 
+                                      x-model="customRole.description"
+                                      rows="3" 
+                                      required
+                                      class="w-full p-3 text-xs leading-relaxed rounded-xl bg-white border border-slate-200 focus:border-[#FF5C2A] focus:outline-none"></textarea>
                         </div>
                     </div>
-                @endforeach
+
+                    <!-- SECTION 02: MATRIKS OTORISASI & HAK AKSES MODUL -->
+                    <div class="p-5 rounded-2xl bg-[#F8FAFC] border border-slate-200/70">
+                        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200/60 mb-4">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-6 h-6 rounded-full bg-[#FF5C2A] text-white flex items-center justify-center text-xs font-black">
+                                    02
+                                </span>
+                                <div>
+                                    <h3 class="text-xs font-black text-[#14171F]">Matriks Otorisasi &amp; Hak Akses Modul</h3>
+                                    <p class="text-[10px] text-slate-400">Pilih konfigurasi izin granular pada 6 domain inti infrastruktur 3T.</p>
+                                </div>
+                            </div>
+
+                            <!-- Presets Pills -->
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" 
+                                        @click="applyPreset('investigatif')"
+                                        :class="activePreset === 'investigatif' ? 'bg-orange-50 border-[#FF5C2A] text-[#FF5C2A] font-extrabold' : 'bg-white text-slate-600 border-slate-200'"
+                                        class="px-2.5 py-1 text-[10px] rounded-full border transition-all">
+                                    Audit Khusus (Investigatif)
+                                </button>
+                                <button type="button" 
+                                        @click="applyPreset('finansial')"
+                                        :class="activePreset === 'finansial' ? 'bg-orange-50 border-[#FF5C2A] text-[#FF5C2A] font-extrabold' : 'bg-white text-slate-600 border-slate-200'"
+                                        class="px-2.5 py-1 text-[10px] rounded-full border transition-all">
+                                    Pengawas Finansial
+                                </button>
+                                <button type="button" 
+                                        @click="applyPreset('spasial')"
+                                        :class="activePreset === 'spasial' ? 'bg-orange-50 border-[#FF5C2A] text-[#FF5C2A] font-extrabold' : 'bg-white text-slate-600 border-slate-200'"
+                                        class="px-2.5 py-1 text-[10px] rounded-full border transition-all">
+                                    Verifikator Spasial BIG
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 6 Modules Permissions Checklist Grid -->
+                        <div class="space-y-3">
+                            <!-- Module 1: Master Wilayah & Sekolah 3T -->
+                            <div class="p-3.5 bg-white rounded-xl border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-[#14171F]">1. Master Wilayah &amp; Sekolah 3T</span>
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Domain 1</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400">NPSN, geolokasi batas terluar, validasi kepemilikan lahan satdik 3T.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label :class="customRole.permissions.domain1.read ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain1][read]" x-model="customRole.permissions.domain1.read" class="rounded text-emerald-600 focus:ring-0"> Read
+                                    </label>
+                                    <label :class="customRole.permissions.domain1.write ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain1][write]" x-model="customRole.permissions.domain1.write" class="rounded text-blue-600 focus:ring-0"> Write / Create
+                                    </label>
+                                    <label :class="customRole.permissions.domain1.delete ? 'bg-rose-50 text-rose-700 border-rose-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain1][delete]" x-model="customRole.permissions.domain1.delete" class="rounded text-rose-600 focus:ring-0"> Delete
+                                    </label>
+                                    <label :class="customRole.permissions.domain1.verify ? 'bg-orange-50 text-[#FF5C2A] border-orange-300 font-extrabold' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain1][verify]" x-model="customRole.permissions.domain1.verify" class="rounded text-[#FF5C2A] focus:ring-0"> Verification
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Module 2: Pelaporan Kerusakan & Media EXIF -->
+                            <div class="p-3.5 bg-white rounded-xl border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-[#14171F]">2. Pelaporan Kerusakan &amp; Media EXIF</span>
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Domain 2</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400">Unggahan foto kerusakan, metadata EXIF GPS (&lt;250m), dan tingkat urgensi fasilitas.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label :class="customRole.permissions.domain2.read ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain2][read]" x-model="customRole.permissions.domain2.read" class="rounded text-emerald-600 focus:ring-0"> Read
+                                    </label>
+                                    <label :class="customRole.permissions.domain2.write ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain2][write]" x-model="customRole.permissions.domain2.write" class="rounded text-blue-600 focus:ring-0"> Write / Create
+                                    </label>
+                                    <label :class="customRole.permissions.domain2.delete ? 'bg-rose-50 text-rose-700 border-rose-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain2][delete]" x-model="customRole.permissions.domain2.delete" class="rounded text-rose-600 focus:ring-0"> Delete
+                                    </label>
+                                    <label :class="customRole.permissions.domain2.verify ? 'bg-orange-50 text-[#FF5C2A] border-orange-300 font-extrabold' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain2][verify]" x-model="customRole.permissions.domain2.verify" class="rounded text-[#FF5C2A] focus:ring-0"> Verification
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Module 3: Proyek Renovasi & Rencana Anggaran (RAB) -->
+                            <div class="p-3.5 bg-white rounded-xl border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5v1.409l4.242 4.243" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-[#14171F]">3. Proyek Renovasi &amp; Rencana Anggaran (RAB)</span>
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Domain 3</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400">Item pekerjaan fisik, kurva S milestone, dan validasi spesifikasi harga satuan wilayah 3T.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label :class="customRole.permissions.domain3.read ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain3][read]" x-model="customRole.permissions.domain3.read" class="rounded text-emerald-600 focus:ring-0"> Read
+                                    </label>
+                                    <label :class="customRole.permissions.domain3.write ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain3][write]" x-model="customRole.permissions.domain3.write" class="rounded text-blue-600 focus:ring-0"> Write / Create
+                                    </label>
+                                    <label :class="customRole.permissions.domain3.delete ? 'bg-rose-50 text-rose-700 border-rose-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain3][delete]" x-model="customRole.permissions.domain3.delete" class="rounded text-rose-600 focus:ring-0"> Delete
+                                    </label>
+                                    <label :class="customRole.permissions.domain3.verify ? 'bg-orange-50 text-[#FF5C2A] border-orange-300 font-extrabold' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain3][verify]" x-model="customRole.permissions.domain3.verify" class="rounded text-[#FF5C2A] focus:ring-0"> Verification
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Module 4: Matching CSR & Pencairan Dana Vendor -->
+                            <div class="p-3.5 bg-white rounded-xl border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-[#14171F]">4. Matching CSR &amp; Pencairan Dana Vendor</span>
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Domain 4</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400">Penerimaan donasi mitra CSR, termin pencairan, dan audit rekening escrow.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label :class="customRole.permissions.domain4.read ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain4][read]" x-model="customRole.permissions.domain4.read" class="rounded text-emerald-600 focus:ring-0"> Read
+                                    </label>
+                                    <label :class="customRole.permissions.domain4.write ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain4][write]" x-model="customRole.permissions.domain4.write" class="rounded text-blue-600 focus:ring-0"> Write / Create
+                                    </label>
+                                    <label :class="customRole.permissions.domain4.delete ? 'bg-rose-50 text-rose-700 border-rose-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain4][delete]" x-model="customRole.permissions.domain4.delete" class="rounded text-rose-600 focus:ring-0"> Delete
+                                    </label>
+                                    <label :class="customRole.permissions.domain4.verify ? 'bg-orange-50 text-[#FF5C2A] border-orange-300 font-extrabold' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain4][verify]" x-model="customRole.permissions.domain4.verify" class="rounded text-[#FF5C2A] focus:ring-0"> Verification
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Module 5: Tata Kelola Akun, Registrasi & RBAC -->
+                            <div class="p-3.5 bg-white rounded-xl border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.765l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-[#14171F]">5. Tata Kelola Akun, Registrasi &amp; RBAC</span>
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Domain 5</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400">Persetujuan akun pendaftar, manajemen matriks hak akses, dan audit log sesi BSrE.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label :class="customRole.permissions.domain5.read ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain5][read]" x-model="customRole.permissions.domain5.read" class="rounded text-emerald-600 focus:ring-0"> Read
+                                    </label>
+                                    <label :class="customRole.permissions.domain5.write ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain5][write]" x-model="customRole.permissions.domain5.write" class="rounded text-blue-600 focus:ring-0"> Write / Create
+                                    </label>
+                                    <label :class="customRole.permissions.domain5.delete ? 'bg-rose-50 text-rose-700 border-rose-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain5][delete]" x-model="customRole.permissions.domain5.delete" class="rounded text-rose-600 focus:ring-0"> Delete
+                                    </label>
+                                    <label :class="customRole.permissions.domain5.verify ? 'bg-orange-50 text-[#FF5C2A] border-orange-300 font-extrabold' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain5][verify]" x-model="customRole.permissions.domain5.verify" class="rounded text-[#FF5C2A] focus:ring-0"> Verification
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Module 6: Investigasi Dugaan Fraud & Pembekuan -->
+                            <div class="p-3.5 bg-white rounded-xl border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center text-[#FF5C2A] shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-[#14171F]">6. Investigasi Dugaan Fraud &amp; Pembekuan</span>
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-[#FF5C2A]">Anti-Fraud</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400">Eskalasi tiket temuan kecurangan, rekomendasi blacklist vendor, dan pelaporan langsung ke Irjen.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label :class="customRole.permissions.domain6.read ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain6][read]" x-model="customRole.permissions.domain6.read" class="rounded text-emerald-600 focus:ring-0"> Read
+                                    </label>
+                                    <label :class="customRole.permissions.domain6.write ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain6][write]" x-model="customRole.permissions.domain6.write" class="rounded text-blue-600 focus:ring-0"> Write / Create
+                                    </label>
+                                    <label :class="customRole.permissions.domain6.delete ? 'bg-rose-50 text-rose-700 border-rose-300' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain6][delete]" x-model="customRole.permissions.domain6.delete" class="rounded text-rose-600 focus:ring-0"> Delete
+                                    </label>
+                                    <label :class="customRole.permissions.domain6.verify ? 'bg-orange-50 text-[#FF5C2A] border-orange-300 font-extrabold' : 'bg-slate-50 text-slate-600 border-slate-200'" class="px-2 py-1 text-[10px] font-bold rounded border cursor-pointer flex items-center gap-1.5">
+                                        <input type="checkbox" name="permissions[domain6][verify]" x-model="customRole.permissions.domain6.verify" class="rounded text-[#FF5C2A] focus:ring-0"> Verification
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    </div>
+
+                    <!-- Fixed Modal Actions Footer -->
+                    <div class="p-4 px-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+                        <button type="button" 
+                                @click="addRoleModalOpen = false" 
+                                class="px-5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-200/60 rounded-full transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" 
+                                class="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-extrabold text-white bg-[#FF5C2A] hover:bg-[#e04f22] rounded-full shadow-md hover:shadow-lg transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                            Simpan &amp; Terapkan Peran Baru
+                        </button>
+                    </div>
+                </form>
+
             </div>
         </div>
 
@@ -682,7 +1158,7 @@
                  class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                     <h3 class="text-base font-extrabold text-[#14171F]">Ubah Peran RBAC Pengguna</h3>
-                    <button type="button" @click="editModalOpen = false" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+                    <button type="button" @click="editModalOpen = false" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
                 </div>
 
                 <template x-if="selectedUser">
@@ -698,9 +1174,18 @@
                         <div class="mb-5">
                             <label class="block text-xs font-bold text-slate-700 mb-2">Pilih Peran Persona RBAC:</label>
                             <select name="role_enum" x-model="selectedRole" class="w-full text-xs font-semibold px-4 py-3 rounded-2xl bg-[#F8FAFC] border border-slate-200 focus:border-[#FF5C2A] focus:outline-none">
-                                @foreach ($roles as $r)
-                                    <option value="{{ $r->value }}">{{ $r->label() }} ({{ $r->value }})</option>
-                                @endforeach
+                                <optgroup label="Persona Standar PRD">
+                                    @foreach ($roles as $r)
+                                        <option value="{{ $r->value }}">{{ $r->label() }} ({{ $r->value }})</option>
+                                    @endforeach
+                                </optgroup>
+                                @if ($customRoles && $customRoles->count() > 0)
+                                    <optgroup label="Peran Khusus Kustom">
+                                        @foreach ($customRoles as $cr)
+                                            <option value="{{ strtolower(data_get($cr, 'code')) }}">{{ data_get($cr, 'name') }} ({{ data_get($cr, 'code') }})</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
                             </select>
                             <p class="text-[11px] text-slate-400 mt-2">
                                 Mengubah peran pengguna akan langsung menyesuaikan wewenang menu, izin aksi CRUD, dan validasi otorisasi di semua domain sistem.
