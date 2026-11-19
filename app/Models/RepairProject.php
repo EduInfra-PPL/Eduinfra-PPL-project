@@ -60,6 +60,11 @@ class RepairProject extends Model
         return $this->belongsTo(DamageReport::class, 'report_id');
     }
 
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class, 'vendor_id');
+    }
+
     public function costEstimates(): HasMany
     {
         return $this->hasMany(CostEstimate::class, 'project_id')
@@ -360,6 +365,10 @@ class RepairProject extends Model
 
     public function getVendorNameAttribute(): string
     {
+        if ($this->relationLoaded('vendor') && $this->vendor) {
+            return $this->vendor->company_name;
+        }
+
         return $this->contractor_name ?: 'Kontraktor Rekanan LPJK';
     }
 

@@ -36,10 +36,4 @@ trait ApiResponses
             'total' => $page->total(),
         ];
     }
-
-    /** Escape karakter khusus LIKE agar input pengguna diperlakukan literal. */
-    protected function escapeLike(string $value): string
-    {
-        return addcslashes($value, '\\%_');
-    }
 }

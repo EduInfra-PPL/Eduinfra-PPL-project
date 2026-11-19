@@ -278,6 +278,7 @@
         :verifiedReports="$verifiedReports"
         :schools="$schools"
         :categories="$categories"
+        :vendors="$vendors ?? collect()"
     />
 
 </x-layouts.app>

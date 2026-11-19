@@ -3,6 +3,7 @@
 namespace App\Actions\Schools;
 
 use App\Enums\ThreeTCategory;
+use App\Services\Schools\SchoolQueryService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -17,44 +18,33 @@ class ListSchoolsAction
         r.id AS region_id, r.code AS region_code, r.name AS region_name,
         r.is_3t, r.is_tertinggal, r.is_terdepan, r.is_terluar';
 
+    public function __construct(private SchoolQueryService $schools) {}
+
     /**
      * @param  array{q?: string|null, level?: string|null, is_3t?: string|null, category?: string|null, status?: string|null}  $filters
      */
     public function execute(array $filters, int $perPage = 20): LengthAwarePaginator
     {
-        $query = $this->baseQuery();
-
         $status = $filters['status'] ?? 'aktif';
-        $query->where('s.is_active', $status !== 'nonaktif');
+        $query = $this->schools->baseQuery()->where('s.is_active', $status !== 'nonaktif');
 
-        if (filled($filters['q'] ?? null)) {
-            $q = trim((string) $filters['q']);
-            $like = '%'.addcslashes($q, '\\%_').'%';
-            $query->where(fn ($w) => $w->where('s.npsn', $q)->orWhere('s.name', 'ilike', $like));
-        }
-        if (filled($filters['level'] ?? null)) {
-            $query->where('s.educational_level', $filters['level']);
-        }
-        if (filled($filters['is_3t'] ?? null)) {
-            $query->where('r.is_3t', $filters['is_3t'] === '1');
-        }
-        if (filled($filters['category'] ?? null)) {
-            $query->where('r.'.ThreeTCategory::from($filters['category'])->column(), true);
-        }
+        $this->schools->applyFilters($query, [
+            'q' => filled($filters['q'] ?? null) ? trim((string) $filters['q']) : null,
+            'level' => $filters['level'] ?? null,
+            'is_3t' => filled($filters['is_3t'] ?? null) ? $filters['is_3t'] === '1' : null,
+            'category' => $filters['category'] ?? null,
+        ]);
 
-        $page = $query->selectRaw(self::SELECT)
+        return $query->selectRaw(self::SELECT)
             ->orderBy('s.name')->orderBy('s.id')
             ->paginate($perPage)
-            ->withQueryString();
-
-        $page->through(fn (object $row): object => ThreeTCategory::decorate($row));
-
-        return $page;
+            ->withQueryString()
+            ->through(fn (object $row): object => ThreeTCategory::decorate($row));
     }
 
     public function find(int $id): ?object
     {
-        $row = $this->baseQuery()->where('s.id', $id)->selectRaw(self::SELECT)->first();
+        $row = $this->schools->baseQuery()->where('s.id', $id)->selectRaw(self::SELECT)->first();
 
         return $row ? ThreeTCategory::decorate($row) : null;
     }
@@ -80,10 +70,5 @@ class ListSchoolsAction
             'regencies' => (int) $row->regencies,
             'inactive' => (int) $row->inactive,
         ];
-    }
-
-    private function baseQuery(): \Illuminate\Database\Query\Builder
-    {
-        return DB::table('schools as s')->join('regions as r', 'r.id', '=', 's.region_id');
     }
 }
