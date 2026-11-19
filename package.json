@@ -2,7 +2,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "vite",
+        "prepare": "node -e \"try{require('child_process').execSync('git config core.hooksPath .githooks',{stdio:'ignore'})}catch(e){}\"",
+        "dev": "npm run prepare --silent && vite",
         "build": "vite build"
     },
     "devDependencies": {
