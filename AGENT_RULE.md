@@ -273,3 +273,13 @@ Acuan visual utama bersumber dari **`dokumen/ERD.png`** (*Gambar 7 Entity Relati
    git commit -m "<tipe>(<lingkup>): <pesan-ringkas>"
    ```
 3. Jangan pernah melakukan `git push` atau `git merge` kecuali diminta secara eksplisit oleh pengguna.
+
+---
+
+## 7. PROTOKOL DATABASE & MIGRATION (SHARED DB / NEON SAFETY)
+1. **Pembaruan Skema Tanpa Menumpuk Migration Tambahan**:
+   - Apabila skema tabel pada suatu migrasi perlu diperbarui atau diperbaiki, **jangan membuat file migration baru** hanya untuk menambal migrasi yang sudah ada (agar struktur file migrasi tetap rapi dan tidak aneh).
+   - Sebagai gantinya, **perbarui langsung file migrasi yang sudah ada**, lakukan **drop tabel lama terkait / rollback spesifik** pada tabel tersebut saja, lalu jalankan kembali `php artisan migrate`.
+2. **Larangan Keras `migrate:fresh` & `migrate:refresh`**:
+   - ⛔ **DILARANG KERAS** menjalankan `php artisan migrate:fresh`, `php artisan migrate:refresh`, atau `php artisan db:wipe`!
+   - Perintah tersebut akan menghapus seluruh tabel dan data tim yang ada di database bersama (seperti **Neon Shared DB**). Selalu gunakan `php artisan migrate` biasa.
