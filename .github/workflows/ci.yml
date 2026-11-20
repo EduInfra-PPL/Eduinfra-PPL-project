@@ -1,0 +1,54 @@
+name: EduInfra CI — Build, Syntax & Compilation Check
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-verify:
+    name: Build, Syntax & Compilation Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.2 & Extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql, pgsql, gd, intl, exif, mbstring, xml, curl, zip
+          coverage: none
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Prepare Environment File
+        run: |
+          cp .env.example .env
+          php -r "file_put_contents('.env', str_replace('APP_KEY=', 'APP_KEY=base64:'.base64_encode(random_bytes(32)), file_get_contents('.env')));"
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install NPM Dependencies & Build Frontend Assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Check PHP Syntax (app, routes, database)
+        run: |
+          find app routes database -name "*.php" -print0 | xargs -0 -n1 php -l
+
+      - name: Check Laravel Routes & Blade Compilation
+        run: |
+          php artisan route:list --except-vendor
+          php artisan view:cache
+          php artisan view:clear

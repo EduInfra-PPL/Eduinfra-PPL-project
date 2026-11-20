@@ -9,65 +9,156 @@
         'rejected' => 'Ditolak',
     ];
 
-    // Matriks Hak Akses RBAC (PBI-14)
-    $rbacMatrix = [
+    // Matriks Hak Akses RBAC Sesuai Figma Tim (PBI-14)
+    $rbacCategories = [
         [
-            'module' => 'Domain 1: Profil Sekolah & Koordinat 3T',
-            'desc' => 'Pendaftaran profil sekolah, pemetaan batas wilayah 3T, dan master kategori fasilitas.',
-            'admin' => ['label' => 'Full CRUD & Validasi', 'type' => 'full'],
-            'guru' => ['label' => 'Read Profil Sendiri', 'type' => 'read'],
-            'auditor' => ['label' => 'Read Wilayah Penugasan', 'type' => 'read'],
-            'csr' => ['label' => 'Read Publik / Katalog', 'type' => 'read'],
-            'key' => 'domain1',
+            'id' => 'A',
+            'domain_key' => 'domain1',
+            'name' => 'A. Modul Master Data Infrastruktur 3T',
+            'icon' => 'folder',
+            'items' => [
+                [
+                    'name' => 'Master Sekolah 3T & NPSN',
+                    'desc' => 'Sinkronisasi Dapodik, akreditasi, & data koordinat statis.',
+                    'adm' => 'full', 'aud' => 'read', 'big' => 'read', 'csr' => 'read', 'kps' => 'read', 'vnd' => 'none',
+                ],
+                [
+                    'name' => 'Zonasi Wilayah GeoJSON & Aksesibilitas',
+                    'desc' => 'Peta batas administratif distrik 3T dan indeks isolasi jalan.',
+                    'adm' => 'full', 'aud' => 'read', 'big' => 'full', 'csr' => 'read', 'kps' => 'none', 'vnd' => 'none',
+                ],
+                [
+                    'name' => 'Taksonomi Fasilitas & Komponen Rusak',
+                    'desc' => 'Katalog elemen bangunan, pondasi, struktur atap, sanitasi.',
+                    'adm' => 'full', 'aud' => 'read', 'big' => 'read', 'csr' => 'read', 'kps' => 'read', 'vnd' => 'read',
+                ],
+            ],
         ],
         [
-            'module' => 'Domain 2: Pelaporan Kerusakan & EXIF GPS',
-            'desc' => 'Pembuatan tiket laporan indikasi kerusakan, verifikasi EXIF GPS (<250m), dan unggah media.',
-            'admin' => ['label' => 'Full Review & Monitoring', 'type' => 'full'],
-            'guru' => ['label' => 'Create & Upload Media', 'type' => 'create'],
-            'auditor' => ['label' => 'Validasi Audit Lapangan', 'type' => 'create'],
-            'csr' => ['label' => 'Read Laporan Terverifikasi', 'type' => 'read'],
-            'key' => 'domain2',
+            'id' => 'B',
+            'domain_key' => 'domain2',
+            'name' => 'B. Modul Pelaporan Kerusakan Fisik',
+            'icon' => 'alert',
+            'items' => [
+                [
+                    'name' => 'Buat Tiket Baru & Unggah Bukti Lapangan',
+                    'desc' => 'Input manual kondisi ruang kelas rusak oleh perwakilan sekolah.',
+                    'adm' => 'full', 'aud' => 'read', 'big' => 'read', 'csr' => 'read', 'kps' => 'full', 'vnd' => 'none',
+                ],
+                [
+                    'name' => 'Validasi EXIF Metadata & Geofence GPS',
+                    'desc' => 'Pendeteksi anomali titik koordinat foto kamera vs radius 50m sekolah.',
+                    'adm' => 'full', 'aud' => 'read', 'big' => 'verify', 'csr' => 'read', 'kps' => 'none', 'vnd' => 'none',
+                ],
+                [
+                    'name' => 'Verifikasi Lapangan & Sign-Off BAP Resmi',
+                    'desc' => 'Pemberian tanda tangan elektronik BSrE pada Berita Acara Pemeriksaan.',
+                    'adm' => 'read', 'aud' => 'read', 'big' => 'verify', 'csr' => 'read', 'kps' => 'none', 'vnd' => 'none',
+                ],
+            ],
         ],
         [
-            'module' => 'Domain 3: Manajemen Renovasi & RAB',
-            'desc' => 'Penyusunan Rencana Anggaran Biaya (RAB), pembaruan milestone fisik, dan direktori vendor.',
-            'admin' => ['label' => 'Approval & Otorisasi RAB', 'type' => 'full'],
-            'guru' => ['label' => 'Read Milestone Fisik', 'type' => 'read'],
-            'auditor' => ['label' => 'Draft RAB & Update Progress', 'type' => 'create'],
-            'csr' => ['label' => 'Read Progress Proyek', 'type' => 'read'],
-            'key' => 'domain3',
+            'id' => 'C',
+            'domain_key' => 'domain3',
+            'name' => 'C. Modul Renovasi & RAB Standar SNI PUPR',
+            'icon' => 'hammer',
+            'items' => [
+                [
+                    'name' => 'Penyusunan Line Item RAB Renovasi',
+                    'desc' => 'Kalkulasi volume bahan, koefisien tenaga kerja daerah terpencil.',
+                    'adm' => 'full', 'aud' => 'read', 'big' => 'read', 'csr' => 'read', 'kps' => 'none', 'vnd' => 'full',
+                ],
+                [
+                    'name' => 'Otorisasi Harga Standar Satuan PUPR',
+                    'desc' => 'Pemberlakuan HPS (Harga Perkiraan Sendiri) wilayah kepulauan.',
+                    'adm' => 'full', 'aud' => 'verify', 'big' => 'read', 'csr' => 'read', 'kps' => 'none', 'vnd' => 'none',
+                ],
+                [
+                    'name' => 'Kunci Anggaran RAB Definitif (Lock Budget)',
+                    'desc' => 'Pembekuan revisi nilai proyek sebelum matching penawaran CSR.',
+                    'adm' => 'full', 'aud' => 'verify', 'big' => 'none', 'csr' => 'read', 'kps' => 'none', 'vnd' => 'none',
+                ],
+            ],
         ],
         [
-            'module' => 'Domain 4: Matching CSR & Donasi Sarpras',
-            'desc' => 'Kampanye bantuan CSR, pencatatan kontribusi donatur, dan termin pencairan dana ke vendor.',
-            'admin' => ['label' => 'Otorisasi Pencairan Dana', 'type' => 'full'],
-            'guru' => ['label' => 'Read Penerima Manfaat', 'type' => 'read'],
-            'auditor' => ['label' => 'Verifikasi Lapangan Vendor', 'type' => 'read'],
-            'csr' => ['label' => 'Create & Salurkan Bantuan', 'type' => 'create'],
-            'key' => 'domain4',
+            'id' => 'D',
+            'domain_key' => 'domain4',
+            'name' => 'D. Modul Manajemen Rekanan Vendor Konstruksi',
+            'icon' => 'building',
+            'items' => [
+                [
+                    'name' => 'Registrasi Kontraktor & Profil Kualifikasi',
+                    'desc' => 'Pendaftaran data NIB, akta pendirian, dan domisili kantor cabang.',
+                    'adm' => 'full', 'aud' => 'read', 'big' => 'none', 'csr' => 'read', 'kps' => 'none', 'vnd' => 'full',
+                ],
+                [
+                    'name' => 'Verifikasi SBU LPJK & Sertifikat Tenaga Kerja',
+                    'desc' => 'Pengecekan integrasi API LPJK PUPR untuk sertifikat keahlian gedung.',
+                    'adm' => 'full', 'aud' => 'verify', 'big' => 'none', 'csr' => 'read', 'kps' => 'none', 'vnd' => 'read',
+                ],
+                [
+                    'name' => 'Blacklist Vendor & Penalti Prestasi',
+                    'desc' => 'Blokir akun rekanan terindikasi wanprestasi / mangkir pekerjaan.',
+                    'adm' => 'full', 'aud' => 'verify', 'big' => 'none', 'csr' => 'none', 'kps' => 'none', 'vnd' => 'none',
+                ],
+            ],
         ],
         [
-            'module' => 'Domain 5: Registrasi, Approval & Matriks RBAC',
-            'desc' => 'Tata kelola akun pengguna 3T, approval berkas pendaftar baru, dan pembagian matriks peran RBAC.',
-            'admin' => ['label' => 'Full Kontrol RBAC & Approval', 'type' => 'full'],
-            'guru' => ['label' => 'Hanya Registrasi & Profil', 'type' => 'restricted'],
-            'auditor' => ['label' => 'Hanya Registrasi & Profil', 'type' => 'restricted'],
-            'csr' => ['label' => 'Hanya Registrasi & Profil', 'type' => 'restricted'],
-            'key' => 'domain5',
+            'id' => 'E',
+            'domain_key' => 'domain5',
+            'name' => 'E. Modul Pencairan Dana CSR & Pajak',
+            'icon' => 'credit-card',
+            'items' => [
+                [
+                    'name' => 'Otorisasi Termin Escrow Mandiri/BNI',
+                    'desc' => 'Multi-sign pencairan dana escrow (Termin I 30%, Termin II 40%, Akhir 30%).',
+                    'adm' => 'full', 'aud' => 'verify', 'big' => 'none', 'csr' => 'full', 'kps' => 'none', 'vnd' => 'read',
+                ],
+                [
+                    'name' => 'Unduh Bukti Potong Pajak PMK-128',
+                    'desc' => 'Sertifikasi insentif pengurangan penghasilan bruto s.d 200%.',
+                    'adm' => 'full', 'aud' => 'read', 'big' => 'none', 'csr' => 'full', 'kps' => 'none', 'vnd' => 'none',
+                ],
+            ],
         ],
         [
-            'module' => 'Anti-Fraud: Investigasi Dugaan Penyimpangan',
-            'desc' => 'Pelaporan tiket fraud, eskalasi markup/korupsi ke Irjen, dan pembekuan akun terindikasi.',
-            'admin' => ['label' => 'Tindak Lanjut & Eskalasi Irjen', 'type' => 'full'],
-            'guru' => ['label' => 'Buat Laporan Dugaan Fraud', 'type' => 'create'],
-            'auditor' => ['label' => 'Catat Temuan Lapangan', 'type' => 'create'],
-            'csr' => ['label' => 'Lapor Dugaan Fraud CSR', 'type' => 'create'],
-            'key' => 'domain6',
+            'id' => 'F',
+            'domain_key' => 'domain6',
+            'name' => 'F. Modul Investigasi Keamanan & Dugaan Fraud',
+            'icon' => 'shield',
+            'items' => [
+                [
+                    'name' => 'Akses Log Audit Forensik & Kriptografi',
+                    'desc' => 'Pemeriksaan jejak digital SHA-256 mutasi status dan IP login.',
+                    'adm' => 'full', 'aud' => 'full', 'big' => 'none', 'csr' => 'none', 'kps' => 'none', 'vnd' => 'none',
+                ],
+                [
+                    'name' => 'Pembekuan Rekening Escrow Darurat',
+                    'desc' => 'Freeze saldo rekening bersama atas temuan audit penyimpangan.',
+                    'adm' => 'full', 'aud' => 'full', 'big' => 'none', 'csr' => 'none', 'kps' => 'none', 'vnd' => 'none',
+                ],
+                [
+                    'name' => 'Eskalasi Tiket Fraud ke Irjen / APH',
+                    'desc' => 'Penerusan berkas bukti ke Komisi Pemberantasan Korupsi / Kejaksaan Agung.',
+                    'adm' => 'none', 'aud' => 'full', 'big' => 'none', 'csr' => 'none', 'kps' => 'none', 'vnd' => 'none',
+                ],
+            ],
         ],
     ];
 
-    $totalRolesCount = 4 + ($customRoles ? $customRoles->count() : 0);
+    $totalRolesCount = 6 + ($customRoles ? $customRoles->count() : 0);
+
+    $renderBadge = function ($type) {
+        if ($type === 'full') {
+            return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-300/80 shadow-2xs"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Full</span>';
+        } elseif ($type === 'read') {
+            return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-sky-50 text-sky-700 border border-sky-300/80 shadow-2xs"><span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>Read</span>';
+        } elseif ($type === 'verify') {
+            return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-orange-50 text-[#FF5C2A] border border-orange-300/80 shadow-2xs"><svg class="w-3 h-3 text-[#FF5C2A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>Verify</span>';
+        } else {
+            return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold text-slate-400 bg-slate-100/70 border border-slate-200/60">— No</span>';
+        }
+    };
 @endphp
 
 <x-layouts.app title="Tata Kelola Akun, Matriks RBAC & Eskalasi Pengaduan Fraud">
@@ -78,6 +169,7 @@
             selectedUser: null,
             selectedRole: '',
             showBsreToast: true,
+            expandedCategories: ['A', 'B', 'C', 'D', 'E', 'F'],
 
             // Form data Tambah Peran Khusus (Custom RBAC Role)
             customRole: {
@@ -141,6 +233,20 @@
                         domain4: { read: true, write: false, delete: false, verify: false },
                         domain5: { read: true, write: false, delete: false, verify: false },
                         domain6: { read: true, write: false, delete: false, verify: false }
+                    };
+                } else if (preset === 'kosong') {
+                    this.customRole.name = '';
+                    this.customRole.code = '';
+                    this.customRole.institution = 'Kemendikbudristek RI / Ditjen PAUD Dikdasmen';
+                    this.customRole.access_level = 'Level 1 - Akses Baca Spesifik & Pelaporan Lapangan';
+                    this.customRole.description = '';
+                    this.customRole.permissions = {
+                        domain1: { read: false, write: false, delete: false, verify: false },
+                        domain2: { read: false, write: false, delete: false, verify: false },
+                        domain3: { read: false, write: false, delete: false, verify: false },
+                        domain4: { read: false, write: false, delete: false, verify: false },
+                        domain5: { read: false, write: false, delete: false, verify: false },
+                        domain6: { read: false, write: false, delete: false, verify: false }
                     };
                 }
             },
@@ -290,8 +396,8 @@
                     <div class="text-2xl font-black text-[#14171F] mt-1">
                         {{ $totalRolesCount }} Peran <span class="text-xs font-semibold text-slate-400">Definisi</span>
                     </div>
-                    <p class="text-[11px] font-medium text-slate-500 mt-2 truncate max-w-[210px]">
-                        Admin, Auditor, Verifikator, CSR, Kepsek, Vendor
+                    <p class="text-[11px] font-medium text-slate-500 mt-2 truncate max-w-[240px]" title="Admin, Auditor, Verifikator, CSR, Kepsek, Vendor{{ ($customRoles && $customRoles->count() > 0) ? ', ' . $customRoles->pluck('code')->implode(', ') : '' }}">
+                        Admin, Auditor, Verifikator, CSR, Kepsek, Vendor{{ ($customRoles && $customRoles->count() > 0) ? ', ' . $customRoles->pluck('code')->implode(', ') : '' }}
                     </p>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600">
@@ -572,173 +678,278 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- TAB CONTENT 2: MATRIKS RBAC (PBI-14)       -->
+        <!-- TAB CONTENT 2: MATRIKS RBAC (PBI-14 FIGMA) -->
         <!-- ========================================== -->
-        <div x-show="activeMainTab === 'rbac'" x-cloak class="bg-white rounded-2xl lg:rounded-3xl p-5 lg:p-6 shadow-sm border border-slate-100">
-            <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
+        <div x-show="activeMainTab === 'rbac'" x-cloak class="bg-white rounded-2xl lg:rounded-3xl p-5 lg:p-7 shadow-sm border border-slate-100">
+            <!-- Header & ISO Compliance Subtitle + Legend -->
+            <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-100">
                 <div>
-                    <h2 class="text-lg font-extrabold text-[#14171F]">Matriks Hak Akses &amp; Wewenang Persona (RBAC Multi-Instansi)</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                        Definisi wewenang granular per peran berdasarkan ketentuan dokumen PRD &amp; Spesifikasi Teknis EduInfra Tracker.
+                    <h2 class="text-xl font-black text-[#14171F] tracking-tight">
+                        Matriks Otorisasi Modul Terintegrasi
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                        Konfigurasi hak akses berbasis klausul ISO/IEC 27001:2022 A.9.2 (Manajemen Hak Istimewa Pengguna).
                     </p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button type="button" 
-                            @click="addRoleModalOpen = true"
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-[#FF5C2A] hover:bg-[#e04f22] text-white text-xs font-bold rounded-full shadow-xs transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        Tambah Peran Khusus Baru
-                    </button>
-                    <div class="flex items-center gap-2 text-xs font-semibold">
-                        <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Full Access</span>
-                        <span class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">✚ Create &amp; Update</span>
-                        <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">👁 Read Only</span>
-                        <span class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-600">✕ Dibatasi</span>
-                    </div>
+
+                <!-- Right Legend (Badges preview) -->
+                <div class="flex flex-wrap items-center gap-2 p-1.5 bg-[#F8FAFC] border border-slate-200/60 rounded-full text-[11px] font-bold">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        Full Akses (W/R/D/A)
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
+                        <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                        Read-Only (R)
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 text-[#FF5C2A] border border-orange-200">
+                        <span class="w-2 h-2 rounded-full bg-[#FF5C2A]"></span>
+                        Verification / Sign-Off (V)
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-500">
+                        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                        No Access (X)
+                    </span>
                 </div>
             </div>
 
-            <!-- RBAC Matrix Table -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
-                    <thead class="bg-[#14171F] text-white text-[11px] font-bold">
-                        <tr>
-                            <th class="py-4 px-4 w-1/4">Modul / Domain Sistem</th>
-                            <th class="py-4 px-3 text-center border-l border-slate-800">
-                                Admin Dinas
-                                <div class="text-[9px] font-normal text-slate-300">admin_dinas</div>
+            <!-- Action Sub-Bar: Sub-module summary & View Toggles -->
+            <div class="flex flex-wrap items-center justify-between gap-3 py-3.5 border-b border-slate-100 mb-4">
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 font-medium">
+                    <span>Menampilkan 6 Kategori Modul Utama (28 Sub-izin Fungsional)</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="inline-flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50/80 px-2.5 py-1 rounded-full border border-emerald-200/60">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Tervalidasi Kebijakan Privasi Siber
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <!-- Toggle Buka Semua / Ringkas -->
+                    <div class="inline-flex p-1 bg-[#F8FAFC] border border-slate-200/70 rounded-full text-xs font-bold">
+                        <button type="button" 
+                                @click="expandedCategories = ['A', 'B', 'C', 'D', 'E', 'F']"
+                                :class="expandedCategories.length === 6 ? 'bg-[#14171F] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
+                                class="px-3 py-1 rounded-full transition-all">
+                            Buka Semua Sub-modul
+                        </button>
+                        <button type="button" 
+                                @click="expandedCategories = []"
+                                :class="expandedCategories.length === 0 ? 'bg-[#14171F] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
+                                class="px-3 py-1 rounded-full transition-all">
+                            Ringkas Tampilan
+                        </button>
+                    </div>
+
+                    <!-- Trigger Tambah Peran Khusus Baru -->
+                    <button type="button" 
+                            @click="addRoleModalOpen = true"
+                            class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#FF5C2A] hover:bg-[#e04f22] text-white text-xs font-bold rounded-full shadow-2xs transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        + Tambah Peran Khusus
+                    </button>
+                </div>
+            </div>
+
+            <!-- RBAC Matrix Table (Matching Figma Exact Layout) -->
+            <div class="overflow-x-auto border border-slate-200/80 rounded-2xl shadow-2xs">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="bg-white border-b border-slate-200 text-xs">
+                        <tr class="text-left font-bold text-slate-700">
+                            <th class="py-4 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 w-[38%]">
+                                KATEGORI &amp; MODUL FUNGSIONAL
                             </th>
-                            <th class="py-4 px-3 text-center border-l border-slate-800">
-                                Pelapor (Guru 3T)
-                                <div class="text-[9px] font-normal text-slate-300">pelapor_guru</div>
+                            <!-- Role 1: Admin -->
+                            <th class="py-3.5 px-3 text-center border-l border-slate-100 w-[9%]">
+                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-[#14171F] text-white text-[10px] font-black tracking-wider shadow-2xs">
+                                    ADM
+                                </span>
+                                <div class="text-[10px] font-semibold text-slate-500 mt-1">Admin</div>
                             </th>
-                            <th class="py-4 px-3 text-center border-l border-slate-800">
-                                Auditor / Relawan
-                                <div class="text-[9px] font-normal text-slate-300">auditor_relawan</div>
+                            <!-- Role 2: Auditor -->
+                            <th class="py-3.5 px-3 text-center border-l border-slate-100 w-[9%]">
+                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-[#0284C7] text-white text-[10px] font-black tracking-wider shadow-2xs">
+                                    AUD
+                                </span>
+                                <div class="text-[10px] font-semibold text-slate-500 mt-1">Auditor</div>
                             </th>
-                            <th class="py-4 px-3 text-center border-l border-slate-800">
-                                Mitra CSR
-                                <div class="text-[9px] font-normal text-slate-300">mitra_csr</div>
+                            <!-- Role 3: Verifikator (BIG) -->
+                            <th class="py-3.5 px-3 text-center border-l border-slate-100 w-[9%]">
+                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-[#059669] text-white text-[10px] font-black tracking-wider shadow-2xs">
+                                    BIG
+                                </span>
+                                <div class="text-[10px] font-semibold text-slate-500 mt-1">Verifikator</div>
                             </th>
+                            <!-- Role 4: Mitra CSR -->
+                            <th class="py-3.5 px-3 text-center border-l border-slate-100 w-[9%]">
+                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-[#D97706] text-white text-[10px] font-black tracking-wider shadow-2xs">
+                                    CSR
+                                </span>
+                                <div class="text-[10px] font-semibold text-slate-500 mt-1">Mitra CSR</div>
+                            </th>
+                            <!-- Role 5: Satdik 3T (KPS) -->
+                            <th class="py-3.5 px-3 text-center border-l border-slate-100 w-[9%]">
+                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-[#334155] text-white text-[10px] font-black tracking-wider shadow-2xs">
+                                    KPS
+                                </span>
+                                <div class="text-[10px] font-semibold text-slate-500 mt-1">Satdik 3T</div>
+                            </th>
+                            <!-- Role 6: LPK Rekanan (VND) -->
+                            <th class="py-3.5 px-3 text-center border-l border-slate-100 w-[9%]">
+                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-[#64748B] text-white text-[10px] font-black tracking-wider shadow-2xs">
+                                    VND
+                                </span>
+                                <div class="text-[10px] font-semibold text-slate-500 mt-1">LPK Rekanan</div>
+                            </th>
+
+                            <!-- Dynamic Custom Roles Columns (if any) -->
                             @if ($customRoles && $customRoles->count() > 0)
                                 @foreach ($customRoles as $cr)
-                                    <th class="py-4 px-3 text-center border-l border-slate-800 bg-[#FF5C2A]/20">
-                                        {{ data_get($cr, 'name') }}
-                                        <div class="text-[9px] font-bold text-[#FF5C2A]">{{ data_get($cr, 'code') }} • {{ data_get($cr, 'institution') }}</div>
+                                    <th class="py-3.5 px-3 text-center border-l border-slate-100 bg-orange-50/30">
+                                        <span class="inline-block px-2.5 py-0.5 rounded-md bg-[#FF5C2A] text-white text-[10px] font-black tracking-wider shadow-2xs">
+                                            {{ data_get($cr, 'code') }}
+                                        </span>
+                                        <div class="text-[10px] font-bold text-slate-700 mt-1 truncate max-w-[110px]" title="{{ data_get($cr, 'name') }}">
+                                            {{ data_get($cr, 'name') }}
+                                        </div>
                                     </th>
                                 @endforeach
                             @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs">
-                        @foreach ($rbacMatrix as $row)
-                            <tr class="hover:bg-slate-50/70 transition-colors">
-                                <td class="py-4 px-4">
-                                    <div class="font-extrabold text-[#14171F]">{{ $row['module'] }}</div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{{ $row['desc'] }}</div>
-                                </td>
+                        @foreach ($rbacCategories as $cat)
+                            <!-- Category Section Header Row -->
+                            <tr class="bg-[#F8FAFC] border-y border-slate-200/80 cursor-pointer hover:bg-slate-100/80 transition-colors"
+                                @click="expandedCategories.includes('{{ $cat['id'] }}') ? expandedCategories = expandedCategories.filter(c => c !== '{{ $cat['id'] }}') : expandedCategories.push('{{ $cat['id'] }}')">
+                                <td colspan="{{ 7 + ($customRoles ? $customRoles->count() : 0) }}" class="py-3 px-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2.5">
+                                            <span class="w-6 h-6 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-xs shadow-2xs">
+                                                @if ($cat['icon'] === 'folder')
+                                                    📁
+                                                @elseif ($cat['icon'] === 'alert')
+                                                    ⚠️
+                                                @elseif ($cat['icon'] === 'hammer')
+                                                    🏗️
+                                                @elseif ($cat['icon'] === 'building')
+                                                    🏢
+                                                @elseif ($cat['icon'] === 'credit-card')
+                                                    💳
+                                                @else
+                                                    ⚖️
+                                                @endif
+                                            </span>
+                                            <span class="font-extrabold text-[#14171F] text-xs tracking-tight">
+                                                {{ $cat['name'] }}
+                                            </span>
+                                            <span class="text-[10px] font-bold text-slate-400 bg-slate-200/60 px-2 py-0.5 rounded-full">
+                                                {{ count($cat['items']) }} Sub-modul
+                                            </span>
+                                        </div>
 
-                                <!-- Admin Dinas -->
-                                <td class="py-4 px-3 text-center border-l border-slate-100 align-middle">
-                                    <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        ✓ {{ $row['admin']['label'] }}
-                                    </span>
+                                        <div class="flex items-center gap-2 text-slate-400">
+                                            <span class="text-[10px] font-semibold" x-text="expandedCategories.includes('{{ $cat['id'] }}') ? 'Tutup' : 'Buka'"></span>
+                                            <svg class="w-4 h-4 transition-transform duration-200 text-slate-400" 
+                                                 :class="expandedCategories.includes('{{ $cat['id'] }}') ? 'rotate-180' : ''" 
+                                                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </td>
-
-                                <!-- Pelapor Guru -->
-                                <td class="py-4 px-3 text-center border-l border-slate-100 align-middle">
-                                    @if ($row['guru']['type'] === 'create')
-                                        <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
-                                            ✚ {{ $row['guru']['label'] }}
-                                        </span>
-                                    @elseif ($row['guru']['type'] === 'read')
-                                        <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700">
-                                            👁 {{ $row['guru']['label'] }}
-                                        </span>
-                                    @else
-                                        <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-600">
-                                            ✕ {{ $row['guru']['label'] }}
-                                        </span>
-                                    @endif
-                                </td>
-
-                                <!-- Auditor Relawan -->
-                                <td class="py-4 px-3 text-center border-l border-slate-100 align-middle">
-                                    @if ($row['auditor']['type'] === 'create')
-                                        <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
-                                            ✚ {{ $row['auditor']['label'] }}
-                                        </span>
-                                    @elseif ($row['auditor']['type'] === 'read')
-                                        <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700">
-                                            👁 {{ $row['auditor']['label'] }}
-                                        </span>
-                                    @else
-                                        <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-600">
-                                            ✕ {{ $row['auditor']['label'] }}
-                                        </span>
-                                    @endif
-                                </td>
-
-                                <!-- Mitra CSR -->
-                                <td class="py-4 px-3 text-center border-l border-slate-100 align-middle">
-                                    @if ($row['csr']['type'] === 'create')
-                                        <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
-                                            ✚ {{ $row['csr']['label'] }}
-                                        </span>
-                                    @elseif ($row['csr']['type'] === 'read')
-                                        <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700">
-                                            👁 {{ $row['csr']['label'] }}
-                                        </span>
-                                    @else
-                                        <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-600">
-                                            ✕ {{ $row['csr']['label'] }}
-                                        </span>
-                                    @endif
-                                </td>
-
-                                <!-- Custom Roles dynamic columns -->
-                                @if ($customRoles && $customRoles->count() > 0)
-                                    @foreach ($customRoles as $cr)
-                                        @php
-                                            $key = $row['key'];
-                                            $allPerms = data_get($cr, 'permissions', []);
-                                            $perms = is_array($allPerms) ? ($allPerms[$key] ?? []) : [];
-                                            $hasVerify = !empty($perms['verify']);
-                                            $hasWrite = !empty($perms['write']);
-                                            $hasDelete = !empty($perms['delete']);
-                                            $hasRead = !empty($perms['read']);
-                                        @endphp
-                                        <td class="py-4 px-3 text-center border-l border-slate-100 align-middle bg-slate-50/50">
-                                            @if ($hasVerify && $hasWrite)
-                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-[#FF5C2A] border border-orange-200">
-                                                    Verifikasi &amp; Tulis
-                                                </span>
-                                            @elseif ($hasVerify)
-                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                                    Verifikasi Lapangan
-                                                </span>
-                                            @elseif ($hasWrite)
-                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                                    ✚ Tulis / Buat
-                                                </span>
-                                            @elseif ($hasRead)
-                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                    👁 Baca / Review
-                                                </span>
-                                            @else
-                                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-600">
-                                                    ✕ Dibatasi
-                                                </span>
-                                            @endif
-                                        </td>
-                                    @endforeach
-                                @endif
                             </tr>
+
+                            <!-- Sub-module Rows -->
+                            @foreach ($cat['items'] as $item)
+                                <tr x-show="expandedCategories.includes('{{ $cat['id'] }}')" 
+                                    x-transition
+                                    class="hover:bg-slate-50/70 transition-colors">
+                                    <!-- Name & Description -->
+                                    <td class="py-3 px-4 pl-8 align-middle">
+                                        <div class="font-extrabold text-slate-900 text-xs">
+                                            {{ $item['name'] }}
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                                            {{ $item['desc'] }}
+                                        </div>
+                                    </td>
+
+                                    <!-- ADM (Admin) -->
+                                    <td class="py-3 px-3 text-center border-l border-slate-100 align-middle">
+                                        {!! $renderBadge($item['adm']) !!}
+                                    </td>
+
+                                    <!-- AUD (Auditor) -->
+                                    <td class="py-3 px-3 text-center border-l border-slate-100 align-middle">
+                                        {!! $renderBadge($item['aud']) !!}
+                                    </td>
+
+                                    <!-- BIG (Verifikator) -->
+                                    <td class="py-3 px-3 text-center border-l border-slate-100 align-middle">
+                                        {!! $renderBadge($item['big']) !!}
+                                    </td>
+
+                                    <!-- CSR (Mitra CSR) -->
+                                    <td class="py-3 px-3 text-center border-l border-slate-100 align-middle">
+                                        {!! $renderBadge($item['csr']) !!}
+                                    </td>
+
+                                    <!-- KPS (Satdik 3T) -->
+                                    <td class="py-3 px-3 text-center border-l border-slate-100 align-middle">
+                                        {!! $renderBadge($item['kps']) !!}
+                                    </td>
+
+                                    <!-- VND (LPK Rekanan) -->
+                                    <td class="py-3 px-3 text-center border-l border-slate-100 align-middle">
+                                        {!! $renderBadge($item['vnd']) !!}
+                                    </td>
+
+                                    <!-- Custom Roles (Dynamic) -->
+                                    @if ($customRoles && $customRoles->count() > 0)
+                                        @foreach ($customRoles as $cr)
+                                            @php
+                                                $catDomainKey = $cat['domain_key'];
+                                                $allPerms = data_get($cr, 'permissions', []);
+                                                $perms = is_array($allPerms) ? ($allPerms[$catDomainKey] ?? []) : [];
+                                                $hasVerify = !empty($perms['verify']);
+                                                $hasWrite = !empty($perms['write']);
+                                                $hasRead = !empty($perms['read']);
+                                                $crType = $hasVerify ? 'verify' : ($hasWrite ? 'full' : ($hasRead ? 'read' : 'none'));
+                                            @endphp
+                                            <td class="py-3 px-3 text-center border-l border-slate-100 align-middle bg-slate-50/30">
+                                                {!! $renderBadge($crType) !!}
+                                            </td>
+                                        @endforeach
+                                    @endif
+                                </tr>
+                            @endforeach
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Footer: Security Compliance Note & Ekspor PDF Regulasi -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mt-5 pt-4 border-t border-slate-100 text-xs">
+                <div class="flex items-center gap-2 text-slate-500 font-medium">
+                    <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                    </svg>
+                    <span>Perubahan hak akses membutuhkan otentikasi biometrik / Passkey FIDO2 oleh Auditor Utama Kemendikbud.</span>
+                </div>
+
+                <button type="button" 
+                        onclick="window.print()" 
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-full border border-slate-200/80 shadow-2xs transition-all">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                    </svg>
+                    Ekspor PDF Regulasi
+                </button>
             </div>
         </div>
 
@@ -926,6 +1137,12 @@
                                         :class="activePreset === 'spasial' ? 'bg-orange-50 border-[#FF5C2A] text-[#FF5C2A] font-extrabold' : 'bg-white text-slate-600 border-slate-200'"
                                         class="px-2.5 py-1 text-[10px] rounded-full border transition-all">
                                     Verifikator Spasial BIG
+                                </button>
+                                <button type="button" 
+                                        @click="applyPreset('kosong')"
+                                        :class="activePreset === 'kosong' ? 'bg-orange-50 border-[#FF5C2A] text-[#FF5C2A] font-extrabold' : 'bg-white text-slate-600 border-slate-200'"
+                                        class="px-2.5 py-1 text-[10px] rounded-full border transition-all">
+                                    + Kosongkan Form (Kustom Bebas)
                                 </button>
                             </div>
                         </div>
