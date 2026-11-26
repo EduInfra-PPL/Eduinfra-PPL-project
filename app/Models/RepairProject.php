@@ -79,6 +79,16 @@ class RepairProject extends Model
             ->orderBy('id');
     }
 
+    /**
+     * Relasi ke riwayat pencairan anggaran ke vendor (Domain 4 - Entitas 13).
+     */
+    public function disbursements(): HasMany
+    {
+        return $this->hasMany(Disbursement::class, 'project_id')
+            ->orderBy('stage_num')
+            ->orderBy('id');
+    }
+
     public function scopeSearch(Builder $query, ?string $keyword): Builder
     {
         if (! $keyword) {

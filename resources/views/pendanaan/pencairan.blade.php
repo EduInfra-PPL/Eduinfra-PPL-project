@@ -1,94 +1,36 @@
+@php
+    $firstProject = $projects[0] ?? null;
+    $defaultStage = 2;
+    $defaultAmount = $firstProject['stages'][$defaultStage]['amount'] ?? 0;
+@endphp
+
 <x-layouts.app active="csr">
     <div
         x-data="{
-            selectedProjectId: 'PRJ-2026-0891',
-            selectedStage: 2,
-            amount: 168000000,
-            receiptFileName: 'Kuitansi_Termin2_CVSentosa_Signed.pdf',
+            selectedProjectId: @js($firstProject['code'] ?? ''),
+            selectedStage: {{ $defaultStage }},
+            amount: {{ (int) $defaultAmount }},
+            receiptFileName: 'Belum ada file dipilih (PDF maks. 10MB)',
             taxInvoiceAdded: false,
-            otpDigits: ['8', '4', '9', '2', '0', '1'],
+            otpDigits: ['', '', '', '', '', ''],
             activeFilterTab: 'all',
             searchQuery: '',
-            toastVisible: true,
-            toastMessage: 'Pencairan Termin 2 Rp 168.000.000 untuk CV Sentosa Sarpras berhasil dicatat',
-            projects: [
-                {
-                    code: 'PRJ-2026-0891',
-                    label: 'PRJ-2026-0891 — SDN 02 Sambas (Kalbar) | Kontraktor: CV Sentosa Sarpras',
-                    title: 'Rehabilitasi 4 RKB SDN 02 Sambas',
-                    donor: 'PT Astra International Tbk (CSR Peduli 3T)',
-                    progress: '62.4%',
-                    stages: {
-                        1: { title: 'Termin 1 (Uang Muka 30%) – Pondasi & Struktur', note: 'Telah Dicairkan pada 12 Agu 2026', amount: 126000000, status: 'paid' },
-                        2: { title: 'Termin 2 (Progress 40%) – Rangka Atap & Finishing', note: 'Siap Dicairkan (Audit Fisik Memenuhi Syarat)', amount: 168000000, status: 'ready' },
-                        3: { title: 'Termin 3 (Pelunasan 30%) – BAST Akhir & Uji Fungsi', note: 'Menunggu BAST Akhir Sekolah', amount: 126000000, status: 'locked' }
-                    }
-                },
-                {
-                    code: 'PRJ-2026-0422',
-                    label: 'PRJ-2026-0422 — SMPN 4 Alor Pantar (NTT) | Kontraktor: PT Bahari Konstruksi',
-                    title: 'Pembangunan Ruang Lab & Sanitasi SMPN 4 Alor',
-                    donor: 'PT Telkom Indonesia Tbk (CSR Divre VII)',
-                    progress: '35.0%',
-                    stages: {
-                        1: { title: 'Termin 1 (Uang Muka 30%) – Pondasi & Struktur', note: 'Telah Dicairkan pada 10 Okt 2026', amount: 90000000, status: 'paid' },
-                        2: { title: 'Termin 2 (Progress 40%) – Rangka Atap & Finishing', note: 'Siap Dicairkan (Audit Fisik Memenuhi Syarat)', amount: 120000000, status: 'ready' },
-                        3: { title: 'Termin 3 (Pelunasan 30%) – BAST Akhir & Uji Fungsi', note: 'Menunggu BAST Akhir Sekolah', amount: 90000000, status: 'locked' }
-                    }
-                }
-            ],
-            mutations: [
-                {
-                    code: 'TRX-DISB-2026-104',
-                    datetime: '14 Okt 2026 • 14:32 WIB',
-                    school: 'SDN 02 Sambas Pesisir',
-                    project_code: 'PRJ-2026-0891',
-                    vendor: 'CV Sentosa Sarpras',
-                    bank: 'Bank Mandiri •• 8821',
-                    stage_num: 2,
-                    stage_label: 'Termin 2 (40%)',
-                    progress: 62.4,
-                    needs_tax_invoice: false
-                },
-                {
-                    code: 'TRX-DISB-2026-103',
-                    datetime: '10 Okt 2026 • 09:15 WIB',
-                    school: 'SMPN 4 Alor Pantar',
-                    project_code: 'PRJ-2026-0422',
-                    vendor: 'PT Bahari Konstruksi',
-                    bank: 'BNI Giro •• 1092',
-                    stage_num: 1,
-                    stage_label: 'Termin 1 (30%)',
-                    progress: 30.0,
-                    needs_tax_invoice: true
-                },
-                {
-                    code: 'TRX-DISB-2026-101',
-                    datetime: '04 Okt 2026 • 11:20 WIB',
-                    school: 'SDN 1 Ransiki Pegaf',
-                    project_code: 'PRJ-2026-1188',
-                    vendor: 'CV Cendrawasih Karya',
-                    bank: 'Bank Papua •• 3499',
-                    stage_num: 3,
-                    stage_label: 'Termin 3 (Pelunasan 30%)',
-                    progress: 100.0,
-                    needs_tax_invoice: false
-                },
-                {
-                    code: 'TRX-DISB-2026-098',
-                    datetime: '28 Sep 2026 • 16:45 WIB',
-                    school: 'SDN 05 Merauke Sota',
-                    project_code: 'PRJ-2026-0743',
-                    vendor: 'PT Papua Maju Bersama',
-                    bank: 'Bank Mandiri •• 4421',
-                    stage_num: 1,
-                    stage_label: 'Termin 1 (30%)',
-                    progress: 30.0,
-                    needs_tax_invoice: true
-                }
-            ],
+            toastVisible: {{ session('success') ? 'true' : 'false' }},
+            toastMessage: @js(session('success', '')),
+            projects: @js($projects ?? []),
+            mutations: @js($mutations ?? []),
             get activeProject() {
-                return this.projects.find(p => p.code === this.selectedProjectId) || this.projects[0];
+                return this.projects.find(p => p.code === this.selectedProjectId) || this.projects[0] || {
+                    code: '-',
+                    title: 'Belum ada proyek renovasi',
+                    donor: '-',
+                    progress: '0%',
+                    stages: {
+                        1: { title: 'Termin 1 (30%)', note: '-', amount: 0, status: 'locked' },
+                        2: { title: 'Termin 2 (40%)', note: '-', amount: 0, status: 'locked' },
+                        3: { title: 'Termin 3 (30%)', note: '-', amount: 0, status: 'locked' }
+                    }
+                };
             },
             selectStage(stage) {
                 this.selectedStage = stage;
@@ -196,26 +138,26 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">Rp 6.340.000.000</h3>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">{{ $stats['total_disbursed_formatted'] ?? 'Rp 0' }}</h3>
                 <div class="flex items-center justify-between text-[11px] font-semibold">
-                    <span class="text-[#FF5C2A]">42,7% dari Pagu Portofolio</span>
-                    <span class="text-slate-400">28 Batch</span>
+                    <span class="text-[#FF5C2A]">{{ $stats['portfolio_pct'] ?? 0 }}% dari Pagu Portofolio</span>
+                    <span class="text-slate-400">{{ $stats['total_batches'] ?? 0 }} Batch</span>
                 </div>
             </div>
 
             <!-- KPI 2 -->
             <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-3">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-xs font-semibold text-slate-500">Pencairan Bulan Ini (Oktober 2026)</p>
+                    <p class="text-xs font-semibold text-slate-500">Pencairan Bulan Ini ({{ now()->translatedFormat('F Y') }})</p>
                     <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">Rp 1.150.000.000</h3>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">{{ $stats['monthly_disbursed_formatted'] ?? 'Rp 0' }}</h3>
                 <div class="flex items-center justify-between text-[11px] font-semibold">
-                    <span class="text-emerald-600">12 Transaksi Valid</span>
+                    <span class="text-emerald-600">{{ $stats['monthly_count'] ?? 0 }} Transaksi Valid</span>
                     <span class="text-slate-400">SP2D Diterbitkan</span>
                 </div>
             </div>
@@ -230,9 +172,9 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-amber-600">3 Pengajuan</h3>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-amber-600">{{ $stats['pending_count'] ?? 0 }} Pengajuan</h3>
                 <div class="flex items-center justify-between text-[11px] font-semibold">
-                    <span class="text-amber-600">Rp 420.000.000 Dalam Antrean</span>
+                    <span class="text-amber-600">{{ $stats['pending_amount_formatted'] ?? 'Rp 0' }} Dalam Antrean</span>
                     <span class="text-slate-400">&lt; 48 Jam</span>
                 </div>
             </div>
@@ -247,7 +189,7 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">98.4%</h3>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">{{ $stats['tax_verified_pct'] ?? 100 }}%</h3>
                 <div class="flex items-center justify-between text-[11px] font-semibold">
                     <span class="text-emerald-600">Tersinkronisasi Pajak &amp; BPKP</span>
                     <span class="text-slate-400">Sinkron</span>
@@ -513,7 +455,7 @@
                                         Laporan Mutasi &amp; Riwayat Pencairan Dana
                                     </h2>
                                     <span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-[11px] font-bold rounded-full">
-                                        28 Transaksi
+                                        {{ $counts['all'] ?? 0 }} Transaksi
                                     </span>
                                 </div>
                                 <p class="text-xs text-slate-500">
@@ -542,7 +484,7 @@
                                 :class="activeFilterTab === 'all' ? 'bg-[#14171F] text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'"
                                 class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer"
                             >
-                                Semua Termin (28)
+                                Semua Termin ({{ $counts['all'] ?? 0 }})
                             </button>
                             <button
                                 type="button"
@@ -550,7 +492,7 @@
                                 :class="activeFilterTab === 'termin1' ? 'bg-[#14171F] text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'"
                                 class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer"
                             >
-                                Termin 1 (14)
+                                Termin 1 ({{ $counts['termin1'] ?? 0 }})
                             </button>
                             <button
                                 type="button"
@@ -558,7 +500,7 @@
                                 :class="activeFilterTab === 'termin2' ? 'bg-[#14171F] text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'"
                                 class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer"
                             >
-                                Termin 2 (9)
+                                Termin 2 ({{ $counts['termin2'] ?? 0 }})
                             </button>
                             <button
                                 type="button"
@@ -566,7 +508,7 @@
                                 :class="activeFilterTab === 'termin3' ? 'bg-[#14171F] text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'"
                                 class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer"
                             >
-                                Termin 3 (5)
+                                Termin 3 ({{ $counts['termin3'] ?? 0 }})
                             </button>
                             <button
                                 type="button"
@@ -574,7 +516,7 @@
                                 :class="activeFilterTab === 'tax_pending' ? 'bg-[#FF5C2A] text-white' : 'bg-[#FFF1EB] text-[#FF5C2A] hover:bg-[#FFE5DC]'"
                                 class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer"
                             >
-                                &bull; Butuh Faktur Susulan (2)
+                                &bull; Butuh Faktur Susulan ({{ $counts['tax_pending'] ?? 0 }})
                             </button>
                         </div>
                     </div>
@@ -639,7 +581,7 @@
 
                     <!-- Pagination Bar -->
                     <div class="p-4 px-6 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
-                        <span x-text="'Menampilkan 1 - ' + filteredMutations.length + ' dari 28 mutasi pencairan dana vendor'"></span>
+                        <span x-text="'Menampilkan ' + filteredMutations.length + ' dari {{ $counts['all'] ?? 0 }} mutasi pencairan dana vendor'"></span>
                         <div class="flex items-center gap-1.5">
                             <button type="button" class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-slate-400 text-[11px] font-bold">Sebelumnya</button>
                             <button type="button" class="w-7 h-7 bg-[#FF5C2A] text-white rounded-lg text-[11px] font-bold">1</button>
@@ -663,7 +605,7 @@
                                 Sinkronisasi Rekening Penampung (Escrow Account)
                             </h4>
                             <p class="text-xs text-slate-500">
-                                Bank Kustodian: PT Bank Mandiri (Persero) Tbk &bull; Saldo Mengendap: <strong class="text-slate-800">Rp 8.420.000.000</strong>
+                                Bank Kustodian: {{ $escrowSummary['bank_name'] ?? 'PT Bank Mandiri (Persero) Tbk' }} &bull; Saldo Mengendap: <strong class="text-slate-800">{{ $escrowSummary['balance_formatted'] ?? 'Rp 0' }}</strong>
                             </p>
                         </div>
                     </div>
