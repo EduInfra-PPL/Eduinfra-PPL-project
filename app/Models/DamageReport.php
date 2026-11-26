@@ -83,6 +83,14 @@ class DamageReport extends Model
         return $this->hasMany(ReportMedia::class, 'report_id');
     }
 
+    /**
+     * Riwayat log verifikasi dan inspeksi fisik oleh auditor (Domain 2: PBI-06).
+     */
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class, 'report_id');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | SCOPES PENCARIAN & FILTER (Untuk Tabel Listing PBI-04)
