@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [AidCampaignController::class, 'store'])->name('store');
         Route::get('/wall-of-donors', [AidContributionController::class, 'wallOfDonors'])->name('wall-of-donors');
         Route::post('/kontribusi', [AidContributionController::class, 'store'])->name('contributions.store');
+        Route::view('/pencairan', 'pendanaan.pencairan')->name('pencairan');
     });
 
     // Domain 1: Master data, khusus Admin Dinas
