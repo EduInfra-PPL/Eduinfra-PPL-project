@@ -122,4 +122,39 @@ class Disbursement extends Model
             default => "Termin {$this->stage_num}",
         };
     }
+
+    /**
+     * Hitung total pagu RAB proyek dari item RAB Approved (fallback ke budget_allocated).
+     */
+    public static function resolveProjectRabTotal(RepairProject $project): int
+    {
+        $rabTotal = (int) CostEstimate::query()
+            ->where('project_id', $project->id)
+            ->whereIn('approval_status', ['Approved', 'approved'])
+            ->sum('total_price');
+
+        if ($rabTotal <= 0) {
+            $rabTotal = (int) ($project->budget_allocated ?: 300_000_000);
+        }
+
+        return $rabTotal;
+    }
+
+    /**
+     * Hitung pembagian pagu termin 30% / 40% / 30% berdasarkan total RAB proyek.
+     *
+     * @return array<int, int>
+     */
+    public static function calculateStageAmounts(int $rabTotal): array
+    {
+        $t1 = (int) round($rabTotal * 0.30);
+        $t2 = (int) round($rabTotal * 0.40);
+        $t3 = max(0, $rabTotal - $t1 - $t2);
+
+        return [
+            1 => $t1,
+            2 => $t2,
+            3 => $t3,
+        ];
+    }
 }
