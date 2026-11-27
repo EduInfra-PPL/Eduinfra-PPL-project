@@ -77,25 +77,15 @@ class ListDisbursementsAction
             ->orderByDesc('id')
             ->get()
             ->map(function (RepairProject $project): array {
-                $rabTotal = (int) CostEstimate::query()
-                    ->where('project_id', $project->id)
-                    ->whereIn('approval_status', ['Approved', 'approved'])
-                    ->sum('total_price');
-
-                if ($rabTotal <= 0) {
-                    $rabTotal = (int) ($project->budget_allocated ?: 300_000_000);
-                }
+                $rabTotal = Disbursement::resolveProjectRabTotal($project);
+                $stageAmounts = Disbursement::calculateStageAmounts($rabTotal);
 
                 $paidByStage = $project->disbursements
                     ->where('status', 'disbursed')
                     ->keyBy('stage_num');
 
-                $t1Amount = (int) round($rabTotal * 0.30);
-                $t2Amount = (int) round($rabTotal * 0.40);
-                $t3Amount = max(0, $rabTotal - $t1Amount - $t2Amount);
-
                 $stages = [];
-                foreach ([1 => $t1Amount, 2 => $t2Amount, 3 => $t3Amount] as $num => $stageAmount) {
+                foreach ($stageAmounts as $num => $stageAmount) {
                     $paidRecord = $paidByStage->get($num);
                     $stageTitle = match ($num) {
                         1 => 'Termin 1 (Uang Muka 30%) – Pondasi & Struktur',
@@ -161,9 +151,13 @@ class ListDisbursementsAction
                 'bank' => $d->vendor_bank_account ?: 'Bank Mandiri •• 8821',
                 'stage_num' => $d->stage_num,
                 'stage_label' => $d->stage_label,
+                'status' => $d->status,
                 'amount_formatted' => $d->formatted_amount,
                 'progress' => round($progress, 1),
                 'needs_tax_invoice' => $d->tax_invoice_file === null,
+                'tax_invoice_file' => $d->tax_invoice_file,
+                'update_tax_url' => route('pendanaan.pencairan.tax-invoice', $d->id),
+                'cancel_url' => route('pendanaan.pencairan.destroy', $d->id),
             ];
         })->values()->all();
 
