@@ -72,6 +72,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/wall-of-donors', [AidContributionController::class, 'wallOfDonors'])->name('wall-of-donors');
         Route::post('/kontribusi', [AidContributionController::class, 'store'])->name('contributions.store');
         Route::get('/pencairan', [DisbursementController::class, 'index'])->name('pencairan');
+        Route::post('/pencairan', [DisbursementController::class, 'store'])->name('pencairan.store');
+        Route::patch('/pencairan/{disbursement}/faktur-pajak', [DisbursementController::class, 'attachTaxInvoice'])
+            ->whereNumber('disbursement')
+            ->name('pencairan.tax-invoice');
+        Route::delete('/pencairan/{disbursement}', [DisbursementController::class, 'destroy'])
+            ->whereNumber('disbursement')
+            ->name('pencairan.destroy');
     });
 
     // Domain 1: Master data, khusus Admin Dinas
