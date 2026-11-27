@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\FacilityCategoryAdminController;
 use App\Http\Controllers\Admin\SchoolAdminController;
 use App\Http\Controllers\AidCampaignController;
 use App\Http\Controllers\AidContributionController;
+use App\Http\Controllers\DisbursementController;
 use App\Http\Controllers\Auth\RegistrationApprovalController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\UserDirectoryController;
@@ -70,7 +71,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [AidCampaignController::class, 'store'])->name('store');
         Route::get('/wall-of-donors', [AidContributionController::class, 'wallOfDonors'])->name('wall-of-donors');
         Route::post('/kontribusi', [AidContributionController::class, 'store'])->name('contributions.store');
-        Route::view('/pencairan', 'pendanaan.pencairan')->name('pencairan');
+        Route::get('/pencairan', [DisbursementController::class, 'index'])->name('pencairan');
+        Route::post('/pencairan', [DisbursementController::class, 'store'])->name('pencairan.store');
+        Route::patch('/pencairan/{disbursement}/faktur-pajak', [DisbursementController::class, 'attachTaxInvoice'])
+            ->whereNumber('disbursement')
+            ->name('pencairan.tax-invoice');
+        Route::delete('/pencairan/{disbursement}', [DisbursementController::class, 'destroy'])
+            ->whereNumber('disbursement')
+            ->name('pencairan.destroy');
     });
 
     // Domain 1: Master data, khusus Admin Dinas

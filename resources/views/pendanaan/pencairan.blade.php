@@ -1,104 +1,75 @@
+@php
+    $requestedProjectId = (int) old('project_id', $projects[0]['id'] ?? 0);
+    $firstProject = collect($projects ?? [])->firstWhere('id', $requestedProjectId) ?? ($projects[0] ?? null);
+
+    $readyStage = 1;
+    if ($firstProject && ! empty($firstProject['stages'])) {
+        foreach ([1, 2, 3] as $num) {
+            if (($firstProject['stages'][$num]['status'] ?? '') === 'ready') {
+                $readyStage = $num;
+                break;
+            }
+        }
+    }
+
+    $defaultStage = (int) old('stage_num', $readyStage);
+    $defaultAmount = $firstProject['stages'][$defaultStage]['amount'] ?? 0;
+@endphp
+
 <x-layouts.app active="csr">
     <div
         x-data="{
-            selectedProjectId: 'PRJ-2026-0891',
-            selectedStage: 2,
-            amount: 168000000,
-            receiptFileName: 'Kuitansi_Termin2_CVSentosa_Signed.pdf',
+            selectedProjectId: {{ (int) ($firstProject['id'] ?? 0) }},
+            selectedStage: {{ $defaultStage }},
+            amount: {{ (int) $defaultAmount }},
+            submitMode: 'disbursed',
+            receiptFileName: 'Belum ada file dipilih (PDF maks. 10MB)',
+            taxFileName: 'Belum ada file e-Faktur dipilih (PDF maks. 10MB)',
             taxInvoiceAdded: false,
-            otpDigits: ['8', '4', '9', '2', '0', '1'],
+            otpDigits: ['', '', '', '', '', ''],
             activeFilterTab: 'all',
             searchQuery: '',
-            toastVisible: true,
-            toastMessage: 'Pencairan Termin 2 Rp 168.000.000 untuk CV Sentosa Sarpras berhasil dicatat',
-            projects: [
-                {
-                    code: 'PRJ-2026-0891',
-                    label: 'PRJ-2026-0891 — SDN 02 Sambas (Kalbar) | Kontraktor: CV Sentosa Sarpras',
-                    title: 'Rehabilitasi 4 RKB SDN 02 Sambas',
-                    donor: 'PT Astra International Tbk (CSR Peduli 3T)',
-                    progress: '62.4%',
-                    stages: {
-                        1: { title: 'Termin 1 (Uang Muka 30%) – Pondasi & Struktur', note: 'Telah Dicairkan pada 12 Agu 2026', amount: 126000000, status: 'paid' },
-                        2: { title: 'Termin 2 (Progress 40%) – Rangka Atap & Finishing', note: 'Siap Dicairkan (Audit Fisik Memenuhi Syarat)', amount: 168000000, status: 'ready' },
-                        3: { title: 'Termin 3 (Pelunasan 30%) – BAST Akhir & Uji Fungsi', note: 'Menunggu BAST Akhir Sekolah', amount: 126000000, status: 'locked' }
-                    }
-                },
-                {
-                    code: 'PRJ-2026-0422',
-                    label: 'PRJ-2026-0422 — SMPN 4 Alor Pantar (NTT) | Kontraktor: PT Bahari Konstruksi',
-                    title: 'Pembangunan Ruang Lab & Sanitasi SMPN 4 Alor',
-                    donor: 'PT Telkom Indonesia Tbk (CSR Divre VII)',
-                    progress: '35.0%',
-                    stages: {
-                        1: { title: 'Termin 1 (Uang Muka 30%) – Pondasi & Struktur', note: 'Telah Dicairkan pada 10 Okt 2026', amount: 90000000, status: 'paid' },
-                        2: { title: 'Termin 2 (Progress 40%) – Rangka Atap & Finishing', note: 'Siap Dicairkan (Audit Fisik Memenuhi Syarat)', amount: 120000000, status: 'ready' },
-                        3: { title: 'Termin 3 (Pelunasan 30%) – BAST Akhir & Uji Fungsi', note: 'Menunggu BAST Akhir Sekolah', amount: 90000000, status: 'locked' }
-                    }
-                }
-            ],
-            mutations: [
-                {
-                    code: 'TRX-DISB-2026-104',
-                    datetime: '14 Okt 2026 • 14:32 WIB',
-                    school: 'SDN 02 Sambas Pesisir',
-                    project_code: 'PRJ-2026-0891',
-                    vendor: 'CV Sentosa Sarpras',
-                    bank: 'Bank Mandiri •• 8821',
-                    stage_num: 2,
-                    stage_label: 'Termin 2 (40%)',
-                    progress: 62.4,
-                    needs_tax_invoice: false
-                },
-                {
-                    code: 'TRX-DISB-2026-103',
-                    datetime: '10 Okt 2026 • 09:15 WIB',
-                    school: 'SMPN 4 Alor Pantar',
-                    project_code: 'PRJ-2026-0422',
-                    vendor: 'PT Bahari Konstruksi',
-                    bank: 'BNI Giro •• 1092',
-                    stage_num: 1,
-                    stage_label: 'Termin 1 (30%)',
-                    progress: 30.0,
-                    needs_tax_invoice: true
-                },
-                {
-                    code: 'TRX-DISB-2026-101',
-                    datetime: '04 Okt 2026 • 11:20 WIB',
-                    school: 'SDN 1 Ransiki Pegaf',
-                    project_code: 'PRJ-2026-1188',
-                    vendor: 'CV Cendrawasih Karya',
-                    bank: 'Bank Papua •• 3499',
-                    stage_num: 3,
-                    stage_label: 'Termin 3 (Pelunasan 30%)',
-                    progress: 100.0,
-                    needs_tax_invoice: false
-                },
-                {
-                    code: 'TRX-DISB-2026-098',
-                    datetime: '28 Sep 2026 • 16:45 WIB',
-                    school: 'SDN 05 Merauke Sota',
-                    project_code: 'PRJ-2026-0743',
-                    vendor: 'PT Papua Maju Bersama',
-                    bank: 'Bank Mandiri •• 4421',
-                    stage_num: 1,
-                    stage_label: 'Termin 1 (30%)',
-                    progress: 30.0,
-                    needs_tax_invoice: true
-                }
-            ],
+            currentPage: 1,
+            perPage: 5,
+            taxModalOpen: false,
+            taxModalRow: null,
+            taxModalFileName: 'Pilih berkas e-Faktur (.pdf)',
+            toastVisible: {{ session('success') || $errors->any() ? 'true' : 'false' }},
+            toastIsError: {{ $errors->any() ? 'true' : 'false' }},
+            toastMessage: @js(session('success') ?: ($errors->first() ?: '')),
+            projects: @js($projects ?? []),
+            mutations: @js($mutations ?? []),
             get activeProject() {
-                return this.projects.find(p => p.code === this.selectedProjectId) || this.projects[0];
+                return this.projects.find(p => Number(p.id) === Number(this.selectedProjectId)) || this.projects[0] || {
+                    id: 0,
+                    code: '-',
+                    title: 'Belum ada proyek renovasi',
+                    donor: '-',
+                    progress: '0%',
+                    stages: {
+                        1: { title: 'Termin 1 (30%)', note: '-', amount: 0, status: 'locked' },
+                        2: { title: 'Termin 2 (40%)', note: '-', amount: 0, status: 'locked' },
+                        3: { title: 'Termin 3 (30%)', note: '-', amount: 0, status: 'locked' }
+                    }
+                };
             },
             selectStage(stage) {
                 this.selectedStage = stage;
                 this.amount = this.activeProject.stages[stage].amount;
             },
             onProjectChange() {
+                const ready = [1, 2, 3].find(num => this.activeProject.stages[num]?.status === 'ready');
+                if (ready) {
+                    this.selectedStage = ready;
+                }
                 this.amount = this.activeProject.stages[this.selectedStage].amount;
             },
             formatRupiah(value) {
                 return new Intl.NumberFormat('id-ID').format(Number(value || 0));
+            },
+            setFilterTab(tab) {
+                this.activeFilterTab = tab;
+                this.currentPage = 1;
             },
             get filteredMutations() {
                 return this.mutations.filter(item => {
@@ -114,9 +85,18 @@
                     return matchTab && matchSearch;
                 });
             },
-            submitMockDisbursement() {
-                this.toastMessage = 'Pencairan Termin ' + this.selectedStage + ' Rp ' + this.formatRupiah(this.amount) + ' berhasil diotorisasi (Preview FE)';
-                this.toastVisible = true;
+            get totalPages() {
+                return Math.max(1, Math.ceil(this.filteredMutations.length / this.perPage));
+            },
+            get paginatedMutations() {
+                const safePage = Math.min(this.currentPage, this.totalPages);
+                const start = (safePage - 1) * this.perPage;
+                return this.filteredMutations.slice(start, start + this.perPage);
+            },
+            openTaxModal(row) {
+                this.taxModalRow = row;
+                this.taxModalFileName = 'Pilih berkas e-Faktur (.pdf)';
+                this.taxModalOpen = true;
             }
         }"
         class="space-y-6 pb-16 pt-4 max-w-7xl mx-auto"
@@ -196,26 +176,26 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">Rp 6.340.000.000</h3>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">{{ $stats['total_disbursed_formatted'] ?? 'Rp 0' }}</h3>
                 <div class="flex items-center justify-between text-[11px] font-semibold">
-                    <span class="text-[#FF5C2A]">42,7% dari Pagu Portofolio</span>
-                    <span class="text-slate-400">28 Batch</span>
+                    <span class="text-[#FF5C2A]">{{ $stats['portfolio_pct'] ?? 0 }}% dari Pagu Portofolio</span>
+                    <span class="text-slate-400">{{ $stats['total_batches'] ?? 0 }} Batch</span>
                 </div>
             </div>
 
             <!-- KPI 2 -->
             <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-3">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-xs font-semibold text-slate-500">Pencairan Bulan Ini (Oktober 2026)</p>
+                    <p class="text-xs font-semibold text-slate-500">Pencairan Bulan Ini ({{ now()->translatedFormat('F Y') }})</p>
                     <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">Rp 1.150.000.000</h3>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">{{ $stats['monthly_disbursed_formatted'] ?? 'Rp 0' }}</h3>
                 <div class="flex items-center justify-between text-[11px] font-semibold">
-                    <span class="text-emerald-600">12 Transaksi Valid</span>
+                    <span class="text-emerald-600">{{ $stats['monthly_count'] ?? 0 }} Transaksi Valid</span>
                     <span class="text-slate-400">SP2D Diterbitkan</span>
                 </div>
             </div>
@@ -230,9 +210,9 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-amber-600">3 Pengajuan</h3>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-amber-600">{{ $stats['pending_count'] ?? 0 }} Pengajuan</h3>
                 <div class="flex items-center justify-between text-[11px] font-semibold">
-                    <span class="text-amber-600">Rp 420.000.000 Dalam Antrean</span>
+                    <span class="text-amber-600">{{ $stats['pending_amount_formatted'] ?? 'Rp 0' }} Dalam Antrean</span>
                     <span class="text-slate-400">&lt; 48 Jam</span>
                 </div>
             </div>
@@ -247,7 +227,7 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">98.4%</h3>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-[#14171F]">{{ $stats['tax_verified_pct'] ?? 100 }}%</h3>
                 <div class="flex items-center justify-between text-[11px] font-semibold">
                     <span class="text-emerald-600">Tersinkronisasi Pajak &amp; BPKP</span>
                     <span class="text-slate-400">Sinkron</span>
@@ -282,7 +262,28 @@
                         </span>
                     </div>
 
-                    <form @submit.prevent="submitMockDisbursement" class="space-y-4">
+                    @if ($errors->any())
+                        <div class="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-700 space-y-1">
+                            <p class="font-extrabold">Validasi pencairan gagal:</p>
+                            <ul class="list-disc pl-4 space-y-0.5">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form
+                        x-ref="disbursementForm"
+                        method="POST"
+                        action="{{ route('pendanaan.pencairan.store') }}"
+                        enctype="multipart/form-data"
+                        class="space-y-4"
+                    >
+                        @csrf
+                        <input type="hidden" name="submit_mode" :value="submitMode">
+                        <input type="hidden" name="otp_code" :value="otpDigits.join('')">
+
                         <!-- 1. Proyek Sasaran -->
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
@@ -293,12 +294,13 @@
                             </div>
 
                             <select
-                                x-model="selectedProjectId"
+                                name="project_id"
+                                x-model.number="selectedProjectId"
                                 @change="onProjectChange()"
                                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5C2A]/20 focus:border-[#FF5C2A]"
                             >
-                                <template x-for="proj in projects" :key="proj.code">
-                                    <option :value="proj.code" x-text="proj.label"></option>
+                                <template x-for="proj in projects" :key="proj.id">
+                                    <option :value="proj.id" x-text="proj.label"></option>
                                 </template>
                             </select>
 
@@ -399,19 +401,40 @@
                                         </div>
                                     </div>
                                     <label class="px-2.5 py-1 bg-white border border-slate-200 hover:border-slate-300 rounded-lg text-[11px] font-bold text-slate-700 cursor-pointer shrink-0">
-                                        Ganti
-                                        <input type="file" accept=".pdf" class="hidden" @change="receiptFileName = $event.target.files[0]?.name || receiptFileName">
+                                        Pilih File
+                                        <input
+                                            type="file"
+                                            name="receipt_file"
+                                            accept=".pdf"
+                                            class="hidden"
+                                            @change="receiptFileName = $event.target.files[0]?.name || 'Belum ada file dipilih (PDF maks. 10MB)'"
+                                        >
                                     </label>
                                 </div>
 
-                                <div class="flex items-center justify-between pt-2 border-t border-slate-200/70 text-[11px]">
-                                    <span class="text-slate-500">Faktur Pajak e-Faktur:</span>
-                                    <button
-                                        type="button"
-                                        @click="taxInvoiceAdded = !taxInvoiceAdded"
-                                        class="font-bold text-[#FF5C2A] hover:underline cursor-pointer"
-                                        x-text="taxInvoiceAdded ? '✓ Faktur Pajak Terlampir' : '+ Lampirkan Faktur Pajak Susulan (U)'"
-                                    ></button>
+                                <div class="pt-2 border-t border-slate-200/70 space-y-2 text-[11px]">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-slate-500">Faktur Pajak e-Faktur:</span>
+                                        <button
+                                            type="button"
+                                            @click="taxInvoiceAdded = !taxInvoiceAdded"
+                                            class="font-bold text-[#FF5C2A] hover:underline cursor-pointer"
+                                            x-text="taxInvoiceAdded ? 'Tutup Input e-Faktur' : '+ Lampirkan Faktur Pajak Bersamaan (Opsional)'"
+                                        ></button>
+                                    </div>
+                                    <div x-show="taxInvoiceAdded" x-cloak class="flex items-center justify-between gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2">
+                                        <span class="text-[11px] text-slate-600 truncate" x-text="taxFileName"></span>
+                                        <label class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-[10px] font-bold text-slate-700 cursor-pointer shrink-0">
+                                            Upload e-Faktur
+                                            <input
+                                                type="file"
+                                                name="tax_invoice_file"
+                                                accept=".pdf"
+                                                class="hidden"
+                                                @change="taxFileName = $event.target.files[0]?.name || 'Belum ada file e-Faktur dipilih (PDF maks. 10MB)'"
+                                            >
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -428,11 +451,11 @@
                             <div class="flex items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
                                 <div class="flex items-center gap-2.5">
                                     <div class="w-8 h-8 rounded-full bg-[#FF5C2A] text-white font-extrabold text-xs flex items-center justify-center shrink-0">
-                                        IH
+                                        {{ strtoupper(substr(auth()->user()->name ?? 'IH', 0, 2)) }}
                                     </div>
                                     <div>
-                                        <p class="text-xs font-bold text-slate-900">Ir. Hendrawan Sulistyo, M.Eng</p>
-                                        <p class="text-[10px] text-slate-500">NIP: 19840211 200801 1 002 | PPK Balai Prasarana Kalbar</p>
+                                        <p class="text-xs font-bold text-slate-900">{{ auth()->user()->name ?? 'Ir. Hendrawan Sulistyo, M.Eng' }}</p>
+                                        <p class="text-[10px] text-slate-500">Pejabat Pembuat Komitmen (PPK) Terautentikasi</p>
                                     </div>
                                 </div>
                                 <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -442,17 +465,23 @@
 
                             <div class="space-y-1.5">
                                 <div class="flex items-center justify-between text-[11px]">
-                                    <span class="font-medium text-slate-500">Masukkan Kode Dual-Token OTP Escrow (SMS/Authenticator):</span>
-                                    <button type="button" @click="alert('Kode OTP baru dikirim ulang.')" class="font-bold text-[#FF5C2A] hover:underline cursor-pointer">
-                                        Kirim Ulang (34s)
+                                    <span class="font-medium text-slate-500">Masukkan Kode Dual-Token OTP Escrow (6 Digit):</span>
+                                    <button
+                                        type="button"
+                                        @click="otpDigits = ['8', '4', '9', '2', '0', '1']"
+                                        class="font-bold text-[#FF5C2A] hover:underline cursor-pointer"
+                                    >
+                                        Isi OTP Demo (849201)
                                     </button>
                                 </div>
                                 <div class="grid grid-cols-6 gap-2">
                                     <template x-for="(digit, idx) in otpDigits" :key="idx">
                                         <input
                                             type="text"
+                                            inputmode="numeric"
                                             maxlength="1"
                                             x-model="otpDigits[idx]"
+                                            @input="if ($event.target.value && idx < 5) $el.parentElement.children[idx + 1]?.focus()"
                                             class="w-full py-2 text-center bg-white border border-slate-200 rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF5C2A]/20 focus:border-[#FF5C2A]"
                                         >
                                     </template>
@@ -468,13 +497,14 @@
                             <div class="flex items-center gap-2">
                                 <button
                                     type="button"
-                                    @click="alert('Draf pencairan disimpan sementara (Preview FE).')"
+                                    @click="submitMode = 'draft'; $nextTick(() => $refs.disbursementForm.submit())"
                                     class="px-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-2xl cursor-pointer"
                                 >
                                     Simpan Draf
                                 </button>
                                 <button
                                     type="submit"
+                                    @click="submitMode = 'disbursed'"
                                     class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#FF5C2A] hover:bg-[#e04f22] text-white text-xs font-bold rounded-2xl shadow-xs cursor-pointer"
                                 >
                                     <span>Otorisasi &amp; Eksekusi Transfer Escrow</span>
@@ -513,7 +543,7 @@
                                         Laporan Mutasi &amp; Riwayat Pencairan Dana
                                     </h2>
                                     <span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-[11px] font-bold rounded-full">
-                                        28 Transaksi
+                                        {{ $counts['all'] ?? 0 }} Transaksi
                                     </span>
                                 </div>
                                 <p class="text-xs text-slate-500">
@@ -528,6 +558,7 @@
                                 <input
                                     type="text"
                                     x-model="searchQuery"
+                                    @input="currentPage = 1"
                                     placeholder="Cari ID transaksi, vendor, proy..."
                                     class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5C2A]/20 focus:border-[#FF5C2A]"
                                 >
@@ -538,43 +569,43 @@
                         <div class="flex flex-wrap items-center gap-2">
                             <button
                                 type="button"
-                                @click="activeFilterTab = 'all'"
+                                @click="setFilterTab('all')"
                                 :class="activeFilterTab === 'all' ? 'bg-[#14171F] text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'"
                                 class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer"
                             >
-                                Semua Termin (28)
+                                Semua Termin ({{ $counts['all'] ?? 0 }})
                             </button>
                             <button
                                 type="button"
-                                @click="activeFilterTab = 'termin1'"
+                                @click="setFilterTab('termin1')"
                                 :class="activeFilterTab === 'termin1' ? 'bg-[#14171F] text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'"
                                 class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer"
                             >
-                                Termin 1 (14)
+                                Termin 1 ({{ $counts['termin1'] ?? 0 }})
                             </button>
                             <button
                                 type="button"
-                                @click="activeFilterTab = 'termin2'"
+                                @click="setFilterTab('termin2')"
                                 :class="activeFilterTab === 'termin2' ? 'bg-[#14171F] text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'"
                                 class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer"
                             >
-                                Termin 2 (9)
+                                Termin 2 ({{ $counts['termin2'] ?? 0 }})
                             </button>
                             <button
                                 type="button"
-                                @click="activeFilterTab = 'termin3'"
+                                @click="setFilterTab('termin3')"
                                 :class="activeFilterTab === 'termin3' ? 'bg-[#14171F] text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'"
                                 class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer"
                             >
-                                Termin 3 (5)
+                                Termin 3 ({{ $counts['termin3'] ?? 0 }})
                             </button>
                             <button
                                 type="button"
-                                @click="activeFilterTab = 'tax_pending'"
+                                @click="setFilterTab('tax_pending')"
                                 :class="activeFilterTab === 'tax_pending' ? 'bg-[#FF5C2A] text-white' : 'bg-[#FFF1EB] text-[#FF5C2A] hover:bg-[#FFE5DC]'"
                                 class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer"
                             >
-                                &bull; Butuh Faktur Susulan (2)
+                                &bull; Butuh Faktur Susulan ({{ $counts['tax_pending'] ?? 0 }})
                             </button>
                         </div>
                     </div>
@@ -584,37 +615,49 @@
                         <table class="w-full text-left text-xs">
                             <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 tracking-wider border-b border-slate-100">
                                 <tr>
-                                    <th class="py-3.5 px-5">ID Transaksi &amp; Waktu</th>
-                                    <th class="py-3.5 px-5">Proyek &amp; Sekolah</th>
-                                    <th class="py-3.5 px-5">Kontraktor &amp; Rekening</th>
-                                    <th class="py-3.5 px-5">Termin (Stage)</th>
+                                    <th class="py-3.5 px-4">ID Transaksi &amp; Waktu</th>
+                                    <th class="py-3.5 px-4">Proyek &amp; Sekolah</th>
+                                    <th class="py-3.5 px-4">Kontraktor &amp; Rekening</th>
+                                    <th class="py-3.5 px-4">Termin &amp; Nominal</th>
+                                    <th class="py-3.5 px-4 text-right">Aksi (U / D)</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
-                                <template x-for="row in filteredMutations" :key="row.code">
+                                <template x-for="row in paginatedMutations" :key="row.code">
                                     <tr class="hover:bg-slate-50/70 transition-colors">
-                                        <td class="py-4 px-5 whitespace-nowrap">
-                                            <p class="font-extrabold text-slate-900" x-text="row.code"></p>
+                                        <td class="py-4 px-4 whitespace-nowrap">
+                                            <div class="flex items-center gap-1.5">
+                                                <p class="font-extrabold text-slate-900" x-text="row.code"></p>
+                                                <span
+                                                    x-show="row.status === 'draft'"
+                                                    class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold uppercase"
+                                                >
+                                                    Draf
+                                                </span>
+                                            </div>
                                             <p class="text-[11px] text-slate-400" x-text="row.datetime"></p>
                                         </td>
-                                        <td class="py-4 px-5">
+                                        <td class="py-4 px-4">
                                             <p class="font-bold text-slate-900" x-text="row.school"></p>
                                             <p class="text-[11px] text-slate-400" x-text="row.project_code"></p>
                                         </td>
-                                        <td class="py-4 px-5">
+                                        <td class="py-4 px-4">
                                             <p class="font-bold text-slate-900" x-text="row.vendor"></p>
                                             <p class="text-[11px] text-slate-400" x-text="row.bank"></p>
                                         </td>
-                                        <td class="py-4 px-5 min-w-[140px]">
-                                            <span
-                                                class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold mb-1.5"
-                                                :class="{
-                                                    'bg-[#FFF1EB] text-[#FF5C2A]': row.stage_num === 2,
-                                                    'bg-emerald-50 text-emerald-700': row.stage_num === 3,
-                                                    'bg-slate-100 text-slate-700': row.stage_num === 1
-                                                }"
-                                                x-text="row.stage_label"
-                                            ></span>
+                                        <td class="py-4 px-4 min-w-[140px]">
+                                            <div class="flex items-center justify-between gap-2 mb-1">
+                                                <span
+                                                    class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold"
+                                                    :class="{
+                                                        'bg-[#FFF1EB] text-[#FF5C2A]': row.stage_num === 2,
+                                                        'bg-emerald-50 text-emerald-700': row.stage_num === 3,
+                                                        'bg-slate-100 text-slate-700': row.stage_num === 1
+                                                    }"
+                                                    x-text="row.stage_label"
+                                                ></span>
+                                                <span class="text-[11px] font-extrabold text-slate-800" x-text="row.amount_formatted"></span>
+                                            </div>
                                             <div class="flex items-center gap-2">
                                                 <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                     <div
@@ -626,10 +669,43 @@
                                                 <span class="text-[10px] font-bold text-slate-500" x-text="row.progress + '%'"></span>
                                             </div>
                                         </td>
+                                        <td class="py-4 px-4 text-right whitespace-nowrap">
+                                            <div class="inline-flex items-center gap-1.5">
+                                                <button
+                                                    x-show="row.needs_tax_invoice"
+                                                    type="button"
+                                                    @click="openTaxModal(row)"
+                                                    class="px-2.5 py-1 bg-[#FFF1EB] hover:bg-[#FFE5DC] text-[#FF5C2A] rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+                                                >
+                                                    + Faktur
+                                                </button>
+                                                <span
+                                                    x-show="!row.needs_tax_invoice"
+                                                    class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-bold"
+                                                >
+                                                    ✓ e-Faktur
+                                                </span>
+                                                <form
+                                                    method="POST"
+                                                    :action="row.cancel_url"
+                                                    class="inline"
+                                                    onsubmit="return confirm('Anulir transaksi pencairan ini? Saldo terpakai proyek akan dikembalikan.');"
+                                                >
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button
+                                                        type="submit"
+                                                        class="px-2.5 py-1 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+                                                    >
+                                                        Anulir
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
                                     </tr>
                                 </template>
                                 <tr x-show="filteredMutations.length === 0">
-                                    <td colspan="4" class="py-10 text-center text-slate-400 text-xs">
+                                    <td colspan="5" class="py-10 text-center text-slate-400 text-xs">
                                         Tidak ada mutasi pencairan yang cocok dengan pencarian atau filter.
                                     </td>
                                 </tr>
@@ -639,13 +715,33 @@
 
                     <!-- Pagination Bar -->
                     <div class="p-4 px-6 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
-                        <span x-text="'Menampilkan 1 - ' + filteredMutations.length + ' dari 28 mutasi pencairan dana vendor'"></span>
+                        <span x-text="'Menampilkan ' + paginatedMutations.length + ' dari ' + filteredMutations.length + ' mutasi pencairan dana vendor'"></span>
                         <div class="flex items-center gap-1.5">
-                            <button type="button" class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-slate-400 text-[11px] font-bold">Sebelumnya</button>
-                            <button type="button" class="w-7 h-7 bg-[#FF5C2A] text-white rounded-lg text-[11px] font-bold">1</button>
-                            <button type="button" class="w-7 h-7 bg-white border border-slate-200 text-slate-700 rounded-lg text-[11px] font-bold">2</button>
-                            <button type="button" class="w-7 h-7 bg-white border border-slate-200 text-slate-700 rounded-lg text-[11px] font-bold">3</button>
-                            <button type="button" class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[11px] font-bold">Berikutnya</button>
+                            <button
+                                type="button"
+                                @click="if (currentPage > 1) currentPage--"
+                                :disabled="currentPage <= 1"
+                                class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold disabled:opacity-40 cursor-pointer"
+                            >
+                                Sebelumnya
+                            </button>
+                            <template x-for="page in totalPages" :key="page">
+                                <button
+                                    type="button"
+                                    @click="currentPage = page"
+                                    :class="currentPage === page ? 'bg-[#FF5C2A] text-white border-[#FF5C2A]' : 'bg-white border-slate-200 text-slate-700'"
+                                    class="w-7 h-7 border rounded-lg text-[11px] font-bold cursor-pointer"
+                                    x-text="page"
+                                ></button>
+                            </template>
+                            <button
+                                type="button"
+                                @click="if (currentPage < totalPages) currentPage++"
+                                :disabled="currentPage >= totalPages"
+                                class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[11px] font-bold disabled:opacity-40 cursor-pointer"
+                            >
+                                Berikutnya
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -663,7 +759,7 @@
                                 Sinkronisasi Rekening Penampung (Escrow Account)
                             </h4>
                             <p class="text-xs text-slate-500">
-                                Bank Kustodian: PT Bank Mandiri (Persero) Tbk &bull; Saldo Mengendap: <strong class="text-slate-800">Rp 8.420.000.000</strong>
+                                Bank Kustodian: {{ $escrowSummary['bank_name'] ?? 'PT Bank Mandiri (Persero) Tbk' }} &bull; Saldo Mengendap: <strong class="text-slate-800">{{ $escrowSummary['balance_formatted'] ?? 'Rp 0' }}</strong>
                             </p>
                         </div>
                     </div>
@@ -703,11 +799,71 @@
             <div
                 x-show="toastVisible"
                 x-transition
+                x-cloak
                 class="px-4 py-2.5 bg-[#14171F] text-white rounded-2xl shadow-lg flex items-center gap-3 text-xs"
             >
-                <span class="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">✓</span>
+                <span
+                    class="w-5 h-5 rounded-full text-white flex items-center justify-center shrink-0"
+                    :class="toastIsError ? 'bg-red-500' : 'bg-emerald-500'"
+                    x-text="toastIsError ? '!' : '✓'"
+                ></span>
                 <span x-text="toastMessage"></span>
                 <button type="button" @click="toastVisible = false" class="text-slate-400 hover:text-white ml-1 cursor-pointer">&times;</button>
+            </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- 6. MODAL UPDATE: LAMPIRKAN FAKTUR PAJAK SUSULAN (U)      -->
+        <!-- ======================================================== -->
+        <div
+            x-show="taxModalOpen"
+            x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
+        >
+            <div @click.away="taxModalOpen = false" class="w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-xl p-6 space-y-4">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#FF5C2A]">Update Compliance</span>
+                        <h3 class="text-base font-extrabold text-slate-900">Lampirkan Faktur Pajak Susulan</h3>
+                        <p class="text-xs text-slate-500 mt-0.5" x-text="(taxModalRow?.code || '') + ' • ' + (taxModalRow?.vendor || '')"></p>
+                    </div>
+                    <button type="button" @click="taxModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg leading-none cursor-pointer">&times;</button>
+                </div>
+
+                <form
+                    method="POST"
+                    :action="taxModalRow?.update_tax_url"
+                    enctype="multipart/form-data"
+                    class="space-y-4"
+                >
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="p-4 border-2 border-dashed border-[#FF5C2A]/30 bg-[#FFF8F5]/60 rounded-2xl space-y-2">
+                        <p class="text-xs font-bold text-slate-800">Berkas e-Faktur Pajak (PDF, maks. 10MB)</p>
+                        <p class="text-[11px] text-slate-500 truncate" x-text="taxModalFileName"></p>
+                        <label class="inline-flex items-center px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-[11px] font-bold text-slate-700 cursor-pointer">
+                            Pilih Berkas e-Faktur
+                            <input
+                                type="file"
+                                name="tax_invoice_file"
+                                accept=".pdf"
+                                required
+                                class="hidden"
+                                @change="taxModalFileName = $event.target.files[0]?.name || 'Pilih berkas e-Faktur (.pdf)'"
+                            >
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                        <button type="button" @click="taxModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-[#FF5C2A] hover:bg-[#e04f22] text-white text-xs font-bold rounded-xl cursor-pointer">
+                            Simpan Faktur Pajak
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
